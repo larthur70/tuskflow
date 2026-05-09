@@ -1,16 +1,83 @@
-# tuskstudy
 
-A new Flutter project.
+# TuskFlow
+
+TuskFlow is a student productivity app focused on helping students stop missing assignment deadlines and avoid doing everything at the last minute.
+
+Instead of focusing on generic habits, TuskFlow focuses on academic tasks, urgency awareness and reducing procrastination through small work sessions.
+
+## Features
+
+- Task creation with deadlines
+- Deadline urgency indicators
+- Local notifications
+- 5-minute focus philosophy
+- Study session timer
+- Streak system
+- Firebase authentication
+- Cloud Firestore integration
+
+## Tech Stack
+
+- Flutter
+- Firebase Auth
+- Cloud Firestore
+- Provider
+
+## Screenshots
+
+(Add screenshots later)
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+### Prerequisites
 
-A few resources to get you started if this is your first Flutter project:
+- Flutter SDK
+- Firebase project configured
+- Xcode / Android Studio
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+### Installation
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Clone the repository:
+
+```bash
+git clone https://github.com/larthur70/tuskflow.git
+```
+
+Install dependencies:
+
+```bash
+flutter pub get
+```
+
+Configure Firebase:
+
+```bash
+flutterfire configure
+```
+
+Run the app:
+
+```bash
+flutter run
+```
+
+## Project Structure
+
+```text
+lib/
+ ├── core/
+ ├── features/
+ ├── utils/
+```
+
+## Vision
+
+Tusk aims to become a productivity companion for students by combining:
+- task management
+- urgency awareness
+- emotional engagement
+- lightweight focus sessions
+
+## License
+
+This project is currently private and under active development.
