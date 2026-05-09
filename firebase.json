@@ -1,0 +1,33 @@
+{
+  "functions": {
+    "source": "functions"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "tuskstudy",
+          "appId": "1:921186863628:android:c4a8d7839568b709ee3c29",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "tuskstudy",
+          "appId": "1:921186863628:ios:68615722f4b66d3dee3c29",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "tuskstudy",
+          "configurations": {
+            "android": "1:921186863628:android:c4a8d7839568b709ee3c29",
+            "ios": "1:921186863628:ios:68615722f4b66d3dee3c29"
+          }
+        }
+      }
+    }
+  }
+}
