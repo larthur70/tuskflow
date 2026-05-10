@@ -55,12 +55,14 @@ exports.tuskDailyReminder = onSchedule(
         const lastSent =
           userData.lastNotificationSentAt?.toDate();
 
+        const HOURS_24 = 24 * 60 * 60 * 1000;
+
         if (
           lastSent &&
-          lastSent.toDateString() === nowJS.toDateString()
+          nowJS.getTime() - lastSent.getTime() < HOURS_24
         ) {
           continue;
-        }
+          }
 
         // pega tarefa pendente mais próxima
         const tasksSnap = await userDoc.ref
