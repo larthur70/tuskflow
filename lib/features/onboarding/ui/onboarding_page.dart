@@ -5,6 +5,7 @@ import 'package:loader_overlay/loader_overlay.dart';
 import 'package:provider/provider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:tuskflow/core/services/auth_service.dart';
+import 'package:tuskflow/features/onboarding/controllers/onboarding_controller.dart';
 import 'package:tuskflow/features/onboarding/ui/tela1.dart';
 import 'package:tuskflow/features/onboarding/ui/tela2.dart';
 import 'package:tuskflow/features/tasks/services/firestore_task_service.dart';
@@ -48,21 +49,11 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
     final title = titleController.text;
     final overlay = context.loaderOverlay;
 
-    if(dueDate == null) return;
+    if(allFlux && dueDate == null) return;
     
     overlay.show();
     try{
-      if (allFlux){
-      await context.read<AuthService>().signIn();
-      if(!mounted) return;
-      await context.read<FirestoreTaskService>().createTask(title, dueDate!);
-    } else {
-      await context.read<AuthService>().signIn();
-    }
-    if(!mounted) {
-      overlay.hide();
-      return;
-    }
+    await context.read<OnboardingController>().initializeUser(completedOnboarding: allFlux,title: title,dueDate: dueDate);
     overlay.hide();
     Navigator.pushReplacementNamed(context, "/");
     } catch (err){

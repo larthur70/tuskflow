@@ -66,132 +66,143 @@ class _EditTaskPopupState extends State<EditTaskPopup> {
   
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-        
-        insetPadding: EdgeInsets.all(20),
-        child: Stack(
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    return SafeArea(
+      child: Dialog(
           
-          children: [
-            Container(
-              padding: EdgeInsets.all(32),
-    
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+          insetPadding: EdgeInsets.symmetric(horizontal: 20,vertical: 24),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.circular(28)),
+          child: AnimatedPadding(
+            duration: const Duration(milliseconds: 100),
+            padding: EdgeInsetsGeometry.only(bottom: bottomInset > 0 ? 10 : 0),
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Stack(
+                
                 children: [
-                  Text("Editar tarefa",style: TextStyle(
-                    color: ColorScheme.of(context).primary,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold
-                    ),
-                    
-                    ),
-                    Space.vertical(40),
-                    //container sugestão do tusk
-                    ClipRRect(
-                      borderRadius: BorderRadiusGeometry.circular(24),
-                      child: Stack(
-                        children: [
-                          Container(
-                            padding: EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(24),
-                              color: Colors.grey.shade200
-                            ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                  Container(
+                    padding: EdgeInsets.all(32),
+                  
+                    child: Column(
+                     
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("Editar tarefa",style: TextStyle(
+                          color: ColorScheme.of(context).primary,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold
+                          ),
+                          
+                          ),
+                          Space.vertical(40),
+                          //container sugestão do tusk
+                          ClipRRect(
+                            borderRadius: BorderRadiusGeometry.circular(24),
+                            child: Stack(
                               children: [
-                                CircleAvatar(
-                                  
-                                  child: Icon(Icons.person),
-                                ),
-                                Space.horizontal(16),
-                                Expanded(
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
+                                Container(
+                                  padding: EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(24),
+                                    color: Colors.grey.shade200
+                                  ),
+                                  child: Row(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text("Sugestão do tusk",style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16
-                                      ),),
-                                      
-                                      Text("Não deixe para amanhã o que voce pode procrastinar hoje... Brincadeira, vamos terminar isso!",style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.grey.shade600
-                                      ),)
+                                      CircleAvatar(
+                                        
+                                        child: Icon(Icons.person),
+                                      ),
+                                      Space.horizontal(16),
+                                      Expanded(
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text("Sugestão do tusk",style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16
+                                            ),),
+                                            
+                                            Text("Não deixe para amanhã o que voce pode procrastinar hoje... Brincadeira, vamos terminar isso!",style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.grey.shade600
+                                            ),)
+                                          ],
+                                        ),
+                                      ),
                                     ],
                                   ),
+                                ),
+                                PositionedColorBall(
+                                  bottom: -20,
+                                  right: -10,
+                                ),
+                                PositionedColorBall(
+                                  bottom: 0,
+                                  right: -30,
                                 ),
                               ],
                             ),
                           ),
-                          PositionedColorBall(
-                            bottom: -20,
-                            right: -10,
+                          Space.vertical(32),
+                          Form(
+                            key: _key,
+                            child: Column(
+                              children: [
+                                MyTextForm(
+                                  validator: Validatorless.multiple([
+                                    Validatorless.required("Digite um nome para a tarefa"),
+                                    Validatorless.max(50, "O nome da sua tarefa deve conter no máximo 50 caracteres")
+                                  ]),
+                                  titulo: "NOME DA TAREFA", controller: _nameEditController,hintText: "Edite o nome do trabalho",),
+                                  Space.vertical(8),
+                            MyTextForm(
+                              
+                              titulo: "DATA", controller: _dateEditController,onTap: getDate,hintText: "Selecione a data de entrega",isDate: true,),
+                              ],
+                            ),
                           ),
-                          PositionedColorBall(
-                            bottom: 0,
-                            right: -30,
-                          ),
-                        ],
-                      ),
-                    ),
-                    Space.vertical(32),
-                    Form(
-                      key: _key,
-                      child: Column(
-                        children: [
-                          MyTextForm(
-                            validator: Validatorless.multiple([
-                              Validatorless.required("Digite um nome para a tarefa"),
-                              Validatorless.max(50, "O nome da sua tarefa deve conter no máximo 50 caracteres")
-                            ]),
-                            titulo: "NOME DA TAREFA", controller: _nameEditController,hintText: "Edite o nome do trabalho",),
-                            Space.vertical(8),
-                      MyTextForm(
-                        
-                        titulo: "DATA", controller: _dateEditController,onTap: getDate,hintText: "Selecione a data de entrega",isDate: true,),
-                        ],
-                      ),
-                    ),
-                    
-                    Space.vertical(32),
-      
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        TextButton(onPressed: (){
-                          Navigator.pop(context);
-                        }, child: Text("Cancelar",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.grey.shade600,fontSize: 16),)),
-                        Space.horizontal(12),
-                        MyButton(text: "Salvar", width: 125,padding: EdgeInsets.all(12),fontSize: 14,onTap: (){
-                          if(!_key.currentState!.validate()) return;
-                          context.read<FirestoreTaskService>().editTask(widget.task.id, _nameEditController.text, selectedDate!,widget.task.initialized);
-                          Navigator.pop(context);
-                        },)
+                          
+                          Space.vertical(32),
+                          
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              TextButton(onPressed: (){
+                                Navigator.pop(context);
+                              }, child: Text("Cancelar",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.grey.shade600,fontSize: 16),)),
+                              Space.horizontal(12),
+                              MyButton(text: "Salvar", width: 125,padding: EdgeInsets.all(12),fontSize: 14,onTap: (){
+                                if(!_key.currentState!.validate()) return;
+                                context.read<FirestoreTaskService>().editTask(widget.task.id, _nameEditController.text, selectedDate!,widget.task.initialized);
+                                Navigator.pop(context);
+                              },)
+                            ],
+                          )
                       ],
+                    ),
+                  ),
+                  Positioned(
+                    top: 32,
+                    right: 32,
+                    child: GestureDetector(
+                      onTap: (){
+                        Navigator.pop(context);
+                      },
+                      child: CircleAvatar(
+                        backgroundColor: Colors.grey.shade300,
+                        child: Icon(Icons.close,color: Colors.black,),
+                      ),
                     )
+                    )
+              
                 ],
               ),
             ),
-            Positioned(
-              top: 32,
-              right: 32,
-              child: GestureDetector(
-                onTap: (){
-                  Navigator.pop(context);
-                },
-                child: CircleAvatar(
-                  backgroundColor: Colors.grey.shade300,
-                  child: Icon(Icons.close,color: Colors.black,),
-                ),
-              )
-              )
-
-          ],
+          ),
         ),
-      );
+    );
   }
 }

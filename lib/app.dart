@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:tuskflow/core/services/auth_service.dart';
 import 'package:tuskflow/features/auth/auth_wrapper.dart';
 import 'package:tuskflow/core/services/streak_service.dart';
+import 'package:tuskflow/features/onboarding/controllers/onboarding_controller.dart';
 import 'package:tuskflow/features/sessions/controller/timer_controller.dart';
 import 'package:tuskflow/features/sessions/services/firestore_session_service.dart';
 import 'package:tuskflow/features/sessions/ui/session_end_page.dart';
@@ -40,7 +41,9 @@ class App extends StatelessWidget {
         Provider(create: (context)=>FirestoreTaskService()),
         Provider(create: (context) => FirestoreSessionService()),
         Provider(create: (context) => StreakService()),
+        Provider(create: (context) => OnboardingController()),
         ChangeNotifierProvider(create: (context) => TimerController()),
+
         ChangeNotifierProvider(create: (context) => TaskController(context.read<FirestoreTaskService>()))
       ],
       builder: (context,child) {
@@ -58,6 +61,7 @@ class App extends StatelessWidget {
                 onError: Colors.white,
                 surface: surface,
                 onSurface: Colors.black87,
+                
                 
               ),
             ),

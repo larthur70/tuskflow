@@ -114,6 +114,7 @@ class TimerController extends ChangeNotifier {
       try{
         await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
           'lastTimerAt':FieldValue.serverTimestamp(),
+          'habitHour': DateTime.now().hour
         });
         debugPrint('Fogo inicial de 5s batido! lastTimerAt atualizado. 🐘🔥');
       } catch (e) {

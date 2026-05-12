@@ -26,22 +26,29 @@ exports.tuskDailyReminder = onSchedule(
   async (event) => {
     const db = admin.firestore();
 
-    const now = admin.firestore.Timestamp.now();
-    const nowJS = now.toDate();
+
+    const nowJS = new Date();
+    const currentHour = nowJS.getHours();
 
     // 23h atrás (margem de segurança pro scheduler)
     const threshold = new Date(
-      nowJS.getTime() - (23 * 60 * 60 * 1000)
+      nowJS.getTime() - (24 * 60 * 60 * 1000)
     );
 
     const thresholdTS =
       admin.firestore.Timestamp.fromDate(threshold);
 
-    console.log("GOOGLE_APPLICATION_CREDENTIALS:", process.env.GOOGLE_APPLICATION_CREDENTIALS);
+    const todayStart = new Date(nowJS);
+    todayStart.setHours(0,0,0,0)
+
+    const todayStartTS = admin.firestore.Timestamp.fromDate(todayStart)
+    
     try {
       const userSnap = await db
         .collection("users")
         .where("lastTimerAt", "<=", thresholdTS)
+        .where('habitHour','==',currentHour)
+        .where("lastNotificationSentAt", "<",todayStartTS)
         .get();
 
       for (const userDoc of userSnap.docs) {
@@ -50,19 +57,6 @@ exports.tuskDailyReminder = onSchedule(
         const fcmToken = userData.fcmToken;
 
         if (!fcmToken) continue;
-
-        // evita spam no mesmo dia
-        const lastSent =
-          userData.lastNotificationSentAt?.toDate();
-
-        const HOURS_24 = 24 * 60 * 60 * 1000;
-
-        if (
-          lastSent &&
-          nowJS.getTime() - lastSent.getTime() < HOURS_24
-        ) {
-          continue;
-          }
 
         // pega tarefa pendente mais próxima
         const tasksSnap = await userDoc.ref
@@ -124,7 +118,7 @@ exports.tuskDailyReminder = onSchedule(
 
           // trava envio até amanhã
           await userDoc.ref.update({
-            lastNotificationSentAt: now,
+            lastNotificationSentAt: admin.firestore.Timestamp.now(),
           });
 
           logger.log(

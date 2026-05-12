@@ -55,6 +55,7 @@ dependencies:
   firebase_messaging: ^16.2.0
   change_app_package_name: ^1.5.0
   package_info_plus: ^10.1.0
+  top_snackbar_flutter: ^3.3.0
 
 dev_dependencies:
   flutter_test:
@@ -70,6 +71,7 @@ dev_dependencies:
 flutter_native_splash:
   color: "#FFFFFF" # Cor de fundo da Splash
   image: assets/images/tusk_images/tusk_1.png # Onde está o seu elefante azul
+  
   
   android_12:
     image: assets/images/tusk_images/tusk_1.png

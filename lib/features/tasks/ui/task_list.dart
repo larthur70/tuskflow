@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tuskflow/features/tasks/controllers/task_controller.dart';
+import 'package:tuskflow/features/tasks/models/task_model.dart';
 import 'package:tuskflow/features/tasks/ui/widgets/task_card.dart';
 import 'package:tuskflow/utils/space.dart';
 
@@ -20,6 +21,7 @@ class TaskList extends StatelessWidget {
       child: StreamBuilder(
         stream: taskStream,
         builder: (context, snapshot) {
+          final tasks = snapshot.data ?? [];
           if (snapshot.hasError) {
             print(snapshot.error);
             return const Center(child: Text("Erro ao carregar dados."));
@@ -27,14 +29,24 @@ class TaskList extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          final tasks = snapshot.data ?? [];
+          
           if (tasks.isEmpty) {
             return const Center(child: Text("Nenhuma tarefa pendente"));
           }
-          if(tasks.length == 1){
-            return Column(
+          return AnimatedSwitcher(
+            duration: const Duration(milliseconds: 500),
+            child: tasks.length == 1 ? _buildUniqueTaskLayout(tasks.first) : _buildListLayout(tasks),
+          );     
+        },
+      ),
+    );
+  }
+}
+
+Widget _buildUniqueTaskLayout(TaskModel task){
+  return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              
+              key: const ValueKey('unique'),
               children: [
                 Text("Sua tarefa está pronta para ser começada!",style: TextStyle(
                   fontSize: 32,
@@ -47,15 +59,17 @@ class TaskList extends StatelessWidget {
                 ),textAlign: TextAlign.center
                 ,),
                 Space.vertical(32),
-                TaskCard(task: tasks.first,unique: true,),
+                TaskCard(task: task,unique: true,),
                 Text('"O segredo é apenas começar. Pequenos passos geram grandes conquistas"',style: TextStyle(
                   fontSize: 16,
                   color: Colors.grey.shade700
                 ),textAlign: TextAlign.center,)
               ],
             );
-          }
-          return Column(
+}
+
+Widget _buildListLayout(List<TaskModel> tasks){
+  return Column(
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -99,15 +113,11 @@ class TaskList extends StatelessWidget {
                       
                       task: task,
                       key: ValueKey(task.id),
-                      unique: tasks.length == 1,
+                      unique: false,
                       );
                   },
                 ),
               ),
             ],
           );
-        },
-      ),
-    );
-  }
 }

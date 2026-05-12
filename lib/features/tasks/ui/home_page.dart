@@ -66,6 +66,7 @@ class _HomePageState extends State<HomePage> {
     final colorScheme = ColorScheme.of(context);
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         actionsPadding: EdgeInsets.only(right: 16),
         actions: [
