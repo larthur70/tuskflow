@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:provider/provider.dart';
-import 'package:tuskflow/core/services/streak_service.dart';
+import 'package:tuskflow/core/services/user_service.dart';
 import 'package:tuskflow/features/sessions/controller/timer_controller.dart';
 import 'package:tuskflow/features/sessions/services/firestore_session_service.dart';
 import 'package:tuskflow/features/sessions/ui/widgets/control_timer_button.dart';
@@ -73,15 +73,15 @@ class _TimerPageState extends State<TimerPage> with WidgetsBindingObserver {
 
       await context.read<FirestoreTaskService>().inicializeTask(widget.task.id,batch: batch);
       await context.read<FirestoreSessionService>().createSession(task: widget.task, durationSeconds: finalRealTempo, continuedBeyond5min: finalRealTempo > 300,batch: batch);
-      
-      final int novoStreak = await context.read<StreakService>().calculateStreak(batch: batch);
+      await context.read<UserService>().incrementProcrastinationDefeated(widget.task, batch);
+    
       await batch.commit();
       if(!mounted) return;
 
       Navigator.pop(context);
       Navigator.pushReplacementNamed(context, "/succes_page",arguments: {
         'duration': finalRealTempo,
-        'streak': novoStreak
+        
       });
       
     } catch (err){

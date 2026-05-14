@@ -77,10 +77,7 @@ class _HomePageState extends State<HomePage> {
               onTap: (){
                 Navigator.pushNamed(context, "/profile_page");
               },
-              child: CircleAvatar(
-                
-                child: Icon(Icons.person,size: 15,),
-              ),
+              child: Icon(Icons.person_outline_rounded,size: 35,),
             ),
           )
         ],

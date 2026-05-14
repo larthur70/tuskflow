@@ -64,7 +64,7 @@ class _ManualCreationState extends State<ManualCreation> {
                 MyTextForm(
                   validator: Validatorless.multiple([
                     Validatorless.required("Digite um título para tarefa"),
-                    Validatorless.max(50, "O nome da tarefa pode conter no máximo 50 caracteres")
+                    Validatorless.max(50, "Digite no máximo 50 caracteres")
                   ]),
                   titulo: "Título da tarefa",hintText: "Ex: Trabalho de biologia",controller: widget.titleController,),
                 Space.vertical(16),

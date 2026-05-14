@@ -401,6 +401,10 @@ class _TaskCardState extends State<TaskCard> {
                         decoration: BoxDecoration(
                           color: widget.task.statusColor.withAlpha(50),
                           borderRadius: BorderRadius.circular(30),
+                          border: Border.all(
+                            color: widget.task.statusColor,
+                            width: 2
+                          )
                         ),
                         child: Text(
                           widget.task.remainingTimeText,
