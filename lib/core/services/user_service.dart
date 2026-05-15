@@ -13,7 +13,7 @@ class UserService {
 
     if(user == null) return;
 
-    if(difference.inHours > 24 && !task.initialized){
+    if(difference.inHours > 24){
       final userDoc = _firestore.collection('users').doc(user!.uid);
       batch.update(userDoc, {
         'earlyStartsCount': FieldValue.increment(1)
@@ -32,5 +32,11 @@ class UserService {
     return UserModel.fromMap(data);
   }
 
-  
+  Future<void> registerInterestInPro() async {
+    if (user == null) return;
+    await _firestore.collection('users').doc(user!.uid).update({
+      'interestedInPro': true,
+      'interestedInProAt': FieldValue.serverTimestamp(),
+    });
+  }
 }

@@ -31,7 +31,7 @@ class TaskList extends StatelessWidget {
           }
           
           if (tasks.isEmpty) {
-            return const Center(child: Text("Nenhuma tarefa pendente"));
+            return _buildEmptyState();
           }
           return AnimatedSwitcher(
             duration: const Duration(milliseconds: 500),
@@ -41,6 +41,30 @@ class TaskList extends StatelessWidget {
       ),
     );
   }
+}
+
+Widget _buildEmptyState() {
+  return Center(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Image.asset(
+          'assets/images/tusk_images/tusk_placeholder.png',
+          width: 220,
+        ),
+        Space.vertical(32),
+        Text(
+          'Sem tarefas pendentes! Agora é só curtur',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey.shade700,
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 Widget _buildUniqueTaskLayout(TaskModel task){

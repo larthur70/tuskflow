@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:provider/provider.dart';
 import 'package:tuskflow/core/widgets/text_card.dart';
+import 'package:tuskflow/features/analytics/services/analytics_service.dart';
 import 'package:tuskflow/features/tasks/services/firestore_task_service.dart';
 
 import 'package:tuskflow/features/tasks/ui/widgets/manual_creation.dart';
@@ -30,12 +31,18 @@ class _CreateTaskState extends State<CreateTask> {
     titleController.dispose();
   }
 
-  createTask()async{
-   if(!formKey.currentState!.validate()) return;
-    try{
-      await context.read<FirestoreTaskService>().createTask(titleController.text, dueDate!);
-    } catch (err){
+  Future<void> createTask() async {
+    if (!formKey.currentState!.validate()) return;
+    final taskService = context.read<FirestoreTaskService>();
+    final analytics = context.read<AnalyticsService>();
+    try {
+      await taskService.createTask(titleController.text, dueDate!);
+      if (!mounted) return;
+      await analytics.logTaskCreated();
+    } catch (err) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erro: $err")));
+      rethrow;
     }
   }
 
