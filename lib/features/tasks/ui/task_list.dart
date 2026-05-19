@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tuskflow/features/tasks/controllers/task_controller.dart';
@@ -10,7 +11,10 @@ class TaskList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<TaskController>();
     final taskStream = context.read<TaskController>().taskStream;
+    final uidKey =
+        FirebaseAuth.instance.currentUser?.uid ?? 'guest';
     return Padding(
       padding: const EdgeInsets.only(
         top: 40,
@@ -19,6 +23,7 @@ class TaskList extends StatelessWidget {
         bottom: 16,
       ),
       child: StreamBuilder(
+        key: ValueKey<String>(uidKey),
         stream: taskStream,
         builder: (context, snapshot) {
           final tasks = snapshot.data ?? [];

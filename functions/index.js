@@ -2,6 +2,7 @@ const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { logger } = require("firebase-functions");
 const admin = require("firebase-admin");
 const messages = require('./notification_messages.json');
+const moment = require("moment-timezone");
 
 if (admin.apps.length === 0) {
   admin.initializeApp({
@@ -26,22 +27,23 @@ exports.tuskDailyReminder = onSchedule(
   async (event) => {
     const db = admin.firestore();
 
-
-    const nowJS = new Date();
-    const currentHour = nowJS.getHours();
+    
+    const nowJS = moment().tz("America/Sao_Paulo");
+    const currentHour = nowJS.hour();
+    logger.log("NOW", nowJS.toString());
+    logger.log("HOUR", currentHour.toString());
 
     // 23h atrás (margem de segurança pro scheduler)
     const threshold = new Date(
-      nowJS.getTime() - (24 * 60 * 60 * 1000)
+      nowJS.valueOf() - (24 * 60 * 60 * 1000)
     );
 
     const thresholdTS =
       admin.firestore.Timestamp.fromDate(threshold);
 
-    const todayStart = new Date(nowJS);
-    todayStart.setHours(0,0,0,0)
+    const todayStart = nowJS.clone().startOf("day");
 
-    const todayStartTS = admin.firestore.Timestamp.fromDate(todayStart)
+    const todayStartTS = admin.firestore.Timestamp.fromDate(todayStart.toDate());
     
     try {
       const userSnap = await db

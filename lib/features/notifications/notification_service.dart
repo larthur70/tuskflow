@@ -59,17 +59,16 @@ class NotificationService {
       final prefs = await SharedPreferences.getInstance();
       String? lastSavedToken = prefs.getString('last_fcm_token');
 
-      //if (currentToken != lastSavedToken){
+      if (currentToken != lastSavedToken){
         await _db.collection('users').doc(userId).set({
           'fcmToken':currentToken,
-          'lastActivity':FieldValue.serverTimestamp(),
         },SetOptions(merge: true));
 
         await prefs.setString('last_fcm_token',currentToken);
         print("Token novo detectado e atualizado no Firestore! $currentToken");
-      //} else {
+      } else {
         print("Token não mudou. Escrita no Firestore poupada. 🐘✅");
-      //}
+      }
     } catch (e) {
       print("Erro ao salvar token: $e");
     }

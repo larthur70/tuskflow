@@ -7,28 +7,36 @@ class MyFilledButton extends StatelessWidget {
   final String svgPath;
   final String text;
   final Color textColor;
-  
-  const MyFilledButton({super.key,required this.backgroundColor,required this.svgPath,required this.text,this.textColor = Colors.black});
+  final VoidCallback? onPressed;
+
+  const MyFilledButton({
+    super.key,
+    required this.backgroundColor,
+    required this.svgPath,
+    required this.text,
+    this.textColor = Colors.black,
+    this.onPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
     return FilledButton(
-                style: ButtonStyle(
-                  padding: WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 16)),
-                  backgroundColor: WidgetStatePropertyAll(
-                    backgroundColor
-                  )
-                ),
-                onPressed: (){}, child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SvgPicture.asset(svgPath,height: 30,),
-                    Space.horizontal(8),
-                    Text(text,style: TextStyle(
-                      color: textColor,
-                      fontSize: 16
-                    ),)
-                  ],
-                ));
+      style: ButtonStyle(
+        padding: WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 16)),
+        backgroundColor: WidgetStatePropertyAll(backgroundColor),
+      ),
+      onPressed: onPressed,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SvgPicture.asset(svgPath, height: 30),
+          Space.horizontal(8),
+          Text(
+            text,
+            style: TextStyle(color: textColor, fontSize: 16),
+          ),
+        ],
+      ),
+    );
   }
 }

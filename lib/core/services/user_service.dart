@@ -39,4 +39,25 @@ class UserService {
       'interestedInProAt': FieldValue.serverTimestamp(),
     });
   }
+
+  /// Saves profile fields from social login (Apple only sends name/email once).
+  Future<void> saveLinkedAccountProfile({
+    required String uid,
+    String? email,
+    String? displayName,
+  }) async {
+    final Map<String, dynamic> data = {};
+    if (email != null && email.trim().isNotEmpty) {
+      data['email'] = email.trim();
+    }
+    if (displayName != null && displayName.trim().isNotEmpty) {
+      data['displayName'] = displayName.trim();
+    }
+    if (data.isEmpty) return;
+
+    await _firestore.collection('users').doc(uid).set(
+      data,
+      SetOptions(merge: true),
+    );
+  }
 }

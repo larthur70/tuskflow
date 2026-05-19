@@ -38,10 +38,10 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider(create: (context)=>AuthService()),
+        Provider(create: (context) => UserService()),
+        Provider(create: (context) => AuthService(context.read<UserService>())),
         Provider(create: (context)=>FirestoreTaskService()),
         Provider(create: (context) => FirestoreSessionService()),
-        Provider(create: (context) => UserService()),
         Provider(create: (context) => OnboardingController()),
         Provider(create: (context) => AnalyticsService()),
         ChangeNotifierProvider(
