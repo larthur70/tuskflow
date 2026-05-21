@@ -1,14 +1,14 @@
+import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:provider/provider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-import 'package:tuskflow/core/services/auth_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:tuskflow/features/notifications/notification_service.dart';
 import 'package:tuskflow/features/onboarding/controllers/onboarding_controller.dart';
 import 'package:tuskflow/features/onboarding/ui/tela1.dart';
 import 'package:tuskflow/features/onboarding/ui/tela2.dart';
-import 'package:tuskflow/features/tasks/services/firestore_task_service.dart';
 import 'package:tuskflow/utils/space.dart';
 
 class OnBoardingPage extends StatefulWidget {
@@ -52,13 +52,29 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
     if(allFlux && dueDate == null) return;
     
     overlay.show();
-    try{
-    await context.read<OnboardingController>().initializeUser(completedOnboarding: allFlux,title: title,dueDate: dueDate);
-    overlay.hide();
-    Navigator.pushReplacementNamed(context, "/");
-    } catch (err){
-      if(mounted) overlay.hide();
+    try {
+      await context.read<OnboardingController>().initializeUser(
+        completedOnboarding: allFlux,
+        title: title,
+        dueDate: dueDate,
+      );
+
+      final String? uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid != null) {
+        unawaited(NotificationService.instance.uploadFcmToken(uid));
+      }
+      // AuthWrapper already switches to HomePage after signInAnonymously().
+    } catch (err) {
       print("erro no onboarding $err");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Não foi possível concluir: $err')),
+        );
+      }
+    } finally {
+      // Must hide even when unmounted: sign-in rebuilds AuthWrapper and
+      // disposes this page while the GlobalLoaderOverlay is still visible.
+      overlay.hide();
     }
     
   }

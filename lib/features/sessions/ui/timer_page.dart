@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:tuskflow/core/services/user_service.dart';
 import 'package:tuskflow/features/sessions/controller/timer_controller.dart';
 import 'package:tuskflow/features/sessions/services/firestore_session_service.dart';
+import 'package:tuskflow/features/sessions/services/timer_persistence_service.dart';
 import 'package:tuskflow/features/sessions/ui/widgets/control_timer_button.dart';
 import 'package:tuskflow/features/tasks/models/task_model.dart';
 import 'package:tuskflow/features/tasks/services/firestore_task_service.dart';
@@ -28,12 +29,13 @@ class _TimerPageState extends State<TimerPage> with WidgetsBindingObserver {
     // TODO: implement initState
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    WidgetsBinding.instance.addPostFrameCallback((_)async{
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final timerController = context.read<TimerController>();
       timerController.setTask(widget.task);
-      final bool hasSession = await timerController.restoreSession();
+      await TimerPersistenceService().saveActiveTaskSnapshot(widget.task);
+      await timerController.restoreSession();
 
-      if(!hasSession){
+      if (!timerController.isRuning) {
         timerController.startTimer();
       }
     });
@@ -71,18 +73,46 @@ class _TimerPageState extends State<TimerPage> with WidgetsBindingObserver {
     try{
       timerController.cancelTimer();
 
-      await context.read<FirestoreTaskService>().inicializeTask(widget.task.id,batch: batch);
-      await context.read<FirestoreSessionService>().createSession(task: widget.task, durationSeconds: finalRealTempo, continuedBeyond5min: finalRealTempo > 300,batch: batch);
+      if (!widget.task.initialized) {
+        await context.read<FirestoreTaskService>().inicializeTask(
+          widget.task.id,
+          batch: batch,
+        );
+      }
+      await context.read<FirestoreSessionService>().createSession(
+        task: widget.task,
+        durationSeconds: finalRealTempo,
+        continuedBeyond5min: finalRealTempo > 300,
+        batch: batch,
+      );
       await context.read<UserService>().incrementProcrastinationDefeated(widget.task, batch);
     
       await batch.commit();
-      if(!mounted) return;
+      if (!mounted) return;
+
+      context.read<UserService>().invalidateUserCache();
+
+      final bool isEarlyStart = widget.task.isEarlyStartAt();
+      int earlyStartsCount = 0;
+      if (isEarlyStart) {
+        final userData = await context.read<UserService>().getUserData(
+          forceRefresh: true,
+        );
+        earlyStartsCount = userData?.earlyStartsCount ?? 0;
+      }
+
+      if (!mounted) return;
 
       Navigator.pop(context);
-      Navigator.pushReplacementNamed(context, "/succes_page",arguments: {
-        'duration': finalRealTempo,
-        
-      });
+      Navigator.pushReplacementNamed(
+        context,
+        "/succes_page",
+        arguments: {
+          'duration': finalRealTempo,
+          'isEarlyStart': isEarlyStart,
+          'earlyStartsCount': earlyStartsCount,
+        },
+      );
       
     } catch (err){
       debugPrint("Erro ao finalizar sessão: $err");

@@ -17,50 +17,36 @@ class OnboardingController {
     final userRef = _firestore.collection("users").doc(user.uid);
     final batch = _firestore.batch();
 
-    batch.set(userRef, {
-      "createdAt":FieldValue.serverTimestamp(),
-      "lastNotificationSentAt":Timestamp.fromMicrosecondsSinceEpoch(0)
-    },SetOptions(merge: true));
+    final Map<String, dynamic> userData = {
+      "createdAt": FieldValue.serverTimestamp(),
+      "lastNotificationSentAt": Timestamp.fromMicrosecondsSinceEpoch(0),
+    };
+
     // usuário saiu pelo X
     if (!completedOnboarding) {
-
+      batch.set(userRef, userData, SetOptions(merge: true));
       await batch.commit();
-
       return;
     }
 
-    // segurança
     if (title == null || dueDate == null) {
-      throw Exception(
-        "title e dueDate são obrigatórios"
-      );
+      throw Exception("title e dueDate são obrigatórios");
     }
 
     final now = DateTime.now();
+    userData["lastTimerAt"] = Timestamp.fromDate(now);
+    userData["habitHour"] = now.hour;
 
-    final taskRef =
-        userRef.collection("tasks").doc();
+    batch.set(userRef, userData, SetOptions(merge: true));
 
-    // cria primeira task
+    final taskRef = userRef.collection("tasks").doc();
     batch.set(taskRef, {
       "title": title,
       "finished": false,
-      "createdAt":
-          FieldValue.serverTimestamp(),
+      "createdAt": FieldValue.serverTimestamp(),
       "initialized": false,
-      "dueDate":
-          Timestamp.fromDate(dueDate),
+      "dueDate": Timestamp.fromDate(dueDate),
     });
-
-    // ativa sistema de reminder
-    batch.set(
-      userRef,
-      {
-        "lastTimerAt":
-            Timestamp.fromDate(now),
-      },
-      SetOptions(merge: true),
-    );
 
     await batch.commit();
   }

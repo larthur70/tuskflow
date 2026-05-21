@@ -32,7 +32,8 @@ void main()async{
     badge: true,
     sound: true,
   );
-  NotificationService().initialize();
+  NotificationService.instance.initialize();
+  NotificationService.instance.registerTokenRefreshHandler();
 
     const AndroidInitializationSettings initializationSettingsAndroid =
       AndroidInitializationSettings('@mipmap/ic_launcher');

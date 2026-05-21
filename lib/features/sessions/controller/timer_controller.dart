@@ -62,6 +62,7 @@ class TimerController extends ChangeNotifier {
     notifyListeners();
 
     _persistence.savePlayState(task.id, acumulatedSeconds);
+    _persistence.saveActiveTaskSnapshot(task);
     _resumeTimerLoop();
   }
 
@@ -119,8 +120,6 @@ class TimerController extends ChangeNotifier {
       }
       return true;
     }
-    // Se não tem sessão salva → NÃO faz nada (deixa o timer parado em 5:00)
-    // Não chama startTimer() aqui!
     return false;
   }
 

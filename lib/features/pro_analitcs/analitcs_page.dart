@@ -1,4 +1,5 @@
-
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
@@ -15,14 +16,16 @@ class AnaliticsPage extends StatefulWidget {
 }
 
 class _AnaliticsPageState extends State<AnaliticsPage> {
-  late final Future<UserModel?> _userFuture;
   bool _interestedInPro = false;
   bool _isSubmittingInterest = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _userFuture = context.read<UserService>().getUserData();
+  Stream<DocumentSnapshot<Map<String, dynamic>>>? _userDocStream() {
+    final String? uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return null;
+    return FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .snapshots();
   }
 
   void _showInterestConfirmationSnackBar() {
@@ -79,11 +82,17 @@ class _AnaliticsPageState extends State<AnaliticsPage> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = ColorScheme.of(context);
+    final stream = _userDocStream();
 
-    return FutureBuilder<UserModel?>(
-      future: _userFuture,
+    if (stream == null) {
+      return const Center(child: Text('Faça login para ver seu progresso.'));
+    }
+
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: stream,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        if (snapshot.connectionState == ConnectionState.waiting &&
+            !snapshot.hasData) {
           return const Center(
             child: SizedBox(
               width: 28,
@@ -92,7 +101,10 @@ class _AnaliticsPageState extends State<AnaliticsPage> {
             ),
           );
         }
-        final user = snapshot.data;
+
+        final Map<String, dynamic>? data = snapshot.data?.data();
+        final UserModel? user =
+            data != null ? UserModel.fromMap(data) : null;
         final earlyStartsCount = user?.earlyStartsCount ?? 0;
         final hasEarlyStarts = earlyStartsCount > 0;
         final isInterested =

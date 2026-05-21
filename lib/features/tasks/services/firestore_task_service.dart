@@ -54,6 +54,7 @@ class FirestoreTaskService {
         .collection('tasks')
         .where("finished", isEqualTo: false)
         .orderBy('dueDate', descending: false)
+        .limit(50)
         .snapshots()
         .map((snapshot) {
           return snapshot.docs
@@ -75,15 +76,18 @@ class FirestoreTaskService {
     }
   }
 
-  Future<TaskModel> getTaskById(taskId) async {
-    final task = await _firestore
+  Future<TaskModel?> getTaskById(String taskId) async {
+    if (user == null) return null;
+
+    final doc = await _firestore
         .collection("users")
         .doc(user!.uid)
         .collection("tasks")
         .doc(taskId)
-        .snapshots()
-        .first;
-    return TaskModel.fromFirestore(task);
+        .get();
+
+    if (!doc.exists) return null;
+    return TaskModel.fromFirestore(doc);
   }
 
   Future<void> editTask(

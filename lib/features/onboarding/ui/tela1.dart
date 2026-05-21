@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tuskflow/features/sessions/ui/widgets/looping_asset_video.dart';
 import 'package:tuskflow/utils/space.dart';
 
 class Tela1 extends StatelessWidget {
@@ -17,7 +18,11 @@ class Tela1 extends StatelessWidget {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16)
               ),
-              child: Image.asset("assets/images/tusk_images/Geracao_de_Video_Sem_Sorriso-ezgif.com-video-to-gif-converter.gif",height: 250,)),
+              child: const LoopingAssetVideo(
+                assetPath: 'assets/images/tusk_images/onboarding.mp4',
+                height: 250,
+              ),
+            ),
             Space.vertical(40),
             Text("Eu sou o Tusk 🐘",style: TextStyle(
               fontSize: 32,
