@@ -219,29 +219,6 @@ class _ProfilePageState extends State<ProfilePage> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("AÇÕES DA CONTA"),
-                        Space.vertical(8),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Column(
-                            children: [
-                              GestureDetector(
-                                onTap: () {
-                                  context.read<AuthService>().logOut();
-                                },
-                                child: ListTile(
-                                  leading: Icon(Icons.restore),
-                                  title: Text("Restaurar compra"),
-                                  trailing: Icon(Icons.arrow_right),
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
-                        Space.vertical(24),
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.all(20),

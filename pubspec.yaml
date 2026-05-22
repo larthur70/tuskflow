@@ -60,6 +60,7 @@ dependencies:
   firebase_analytics: ^12.4.1
   url_launcher: ^6.3.1
   video_player: ^2.10.0
+  flutter_launcher_icons: ^0.14.4
 
 dev_dependencies:
   flutter_test:
@@ -71,6 +72,12 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/icon.png"
+  remove_alpha_ios: true
 
 flutter_native_splash:
   color: "#FFFFFF" # Cor de fundo da Splash
