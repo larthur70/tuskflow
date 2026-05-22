@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:tuskflow/core/utils/critical_operation_timeout.dart';
 
 class OnboardingController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -9,7 +10,9 @@ class OnboardingController {
     String? title,
     DateTime? dueDate
   })async{
-    final credential = await _auth.signInAnonymously();
+    final credential = await withCriticalOperationTimeout(
+      _auth.signInAnonymously(),
+    );
     final user = credential.user;
     if (user == null){
       throw Exception("erro ao criar usuário");
@@ -25,7 +28,7 @@ class OnboardingController {
     // usuário saiu pelo X
     if (!completedOnboarding) {
       batch.set(userRef, userData, SetOptions(merge: true));
-      await batch.commit();
+      await withCriticalOperationTimeout(batch.commit());
       return;
     }
 
@@ -48,6 +51,6 @@ class OnboardingController {
       "dueDate": Timestamp.fromDate(dueDate),
     });
 
-    await batch.commit();
+    await withCriticalOperationTimeout(batch.commit());
   }
 }

@@ -1,6 +1,7 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:tuskflow/core/utils/critical_operation_timeout.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:provider/provider.dart';
 import 'package:tuskflow/core/services/user_service.dart';
@@ -87,7 +88,7 @@ class _TimerPageState extends State<TimerPage> with WidgetsBindingObserver {
       );
       await context.read<UserService>().incrementProcrastinationDefeated(widget.task, batch);
     
-      await batch.commit();
+      await withCriticalOperationTimeout(batch.commit());
       if (!mounted) return;
 
       context.read<UserService>().invalidateUserCache();
@@ -114,8 +115,13 @@ class _TimerPageState extends State<TimerPage> with WidgetsBindingObserver {
         },
       );
       
-    } catch (err){
+    } catch (err) {
       debugPrint("Erro ao finalizar sessão: $err");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(criticalOperationErrorMessage(err))),
+        );
+      }
     } finally {
       loader.hide();
     }

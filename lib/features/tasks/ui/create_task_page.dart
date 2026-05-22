@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:provider/provider.dart';
+import 'package:tuskflow/core/utils/critical_operation_timeout.dart';
 import 'package:tuskflow/core/widgets/text_card.dart';
 import 'package:tuskflow/features/analytics/services/analytics_service.dart';
 import 'package:tuskflow/features/tasks/services/firestore_task_service.dart';
@@ -41,7 +42,9 @@ class _CreateTaskState extends State<CreateTask> {
       await analytics.logTaskCreated();
     } catch (err) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erro: $err")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(criticalOperationErrorMessage(err))),
+      );
       rethrow;
     }
   }

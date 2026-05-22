@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:tuskflow/features/notifications/notification_service.dart';
+import 'package:tuskflow/core/utils/critical_operation_timeout.dart';
 import 'package:tuskflow/features/onboarding/controllers/onboarding_controller.dart';
 import 'package:tuskflow/features/onboarding/ui/tela1.dart';
 import 'package:tuskflow/features/onboarding/ui/tela2.dart';
@@ -68,7 +69,7 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
       print("erro no onboarding $err");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Não foi possível concluir: $err')),
+          SnackBar(content: Text(criticalOperationErrorMessage(err))),
         );
       }
     } finally {

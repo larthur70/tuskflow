@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:tuskflow/core/utils/critical_operation_timeout.dart';
 import 'package:tuskflow/features/tasks/models/task_model.dart';
 
 class FirestoreTaskService {
@@ -32,18 +33,15 @@ class FirestoreTaskService {
         .collection('users')
         .doc(user!.uid)
         .collection('tasks');
-    try {
-        await taskRef.add({
-          "title": title,
-          "finished": false,
-          "createdAt": FieldValue.serverTimestamp(),
-          "initialized": initialized,
-          "dueDate": Timestamp.fromDate(dueDate),
-        });
-      print("tarefa criada com sucesso!");
-    } catch (e) {
-      print(e);
-    }
+    await withCriticalOperationTimeout(
+      taskRef.add({
+        "title": title,
+        "finished": false,
+        "createdAt": FieldValue.serverTimestamp(),
+        "initialized": initialized,
+        "dueDate": Timestamp.fromDate(dueDate),
+      }),
+    );
   }
 
   Stream<List<TaskModel>> getTasks() {

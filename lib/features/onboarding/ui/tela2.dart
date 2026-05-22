@@ -25,7 +25,7 @@ class Tela2 extends StatelessWidget {
             ),
             child: Icon(Icons.hourglass_empty,color: colorScheme.secondary,size: 40,),),
             Space.vertical(16),
-            Text("O que você está procrastinando?",style: TextStyle(
+            Text("Qual tarefa você está enrolando?",style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 32
             ),),
