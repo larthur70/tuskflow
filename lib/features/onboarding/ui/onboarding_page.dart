@@ -82,8 +82,8 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
     final colorScheme = ColorScheme.of(context);
+    final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
@@ -95,14 +95,16 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
           }, icon: Icon(Icons.close,color: colorScheme.secondary,))
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: SingleChildScrollView(
+      body: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: keyboardOpen ? 8 : 16,
+          ),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+           
             children: [
-              SizedBox(
-                height: screenHeight * 0.65,
+              Expanded(
                 child: PageView(
                   onPageChanged: (index) {
                     setState(() {
@@ -111,49 +113,72 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                   },
                   controller: _controller,
                   children: [
-                    Tela1(),
-                    Tela2(formKey: formKey,dateController: dateController,titleController: titleController,onDateSelected: (selectedDate){
-                      dueDate = selectedDate;
-                    },),
-                   
+                    const Tela1(),
+                    Tela2(
+                      formKey: formKey,
+                      dateController: dateController,
+                      titleController: titleController,
+                      onDateSelected: (selectedDate) {
+                        dueDate = selectedDate;
+                      },
+                    ),
                   ],
                 ),
               ),
-              
               SizedBox(
                 width: double.infinity,
-                child: FilledButton(onPressed: (){
-                  if(currentPage == 1){
-                    final validate = formKey.currentState!.validate();
-                    if(!validate) return;
-                
-                    exitOnboarding(true);
-                    
-                    return;
-                    
-                  }
-                  _controller.nextPage(duration: Duration(milliseconds: 200), curve: Curves.easeInOut);
-                },
-                style: ButtonStyle(
-                  padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 24,vertical: 12))
-                ), 
-                child: currentPage == 0 ? 
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text("Vamos Começar",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 18),),
-                    Space.horizontal(4),
-                    Icon(Icons.keyboard_arrow_right,size: 24,)
-                  ],
-                ) : Text("Criar tarefa",style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18
-                ),)),
+                child: FilledButton(
+                  onPressed: () {
+                    if (currentPage == 1) {
+                      final validate = formKey.currentState!.validate();
+                      if (!validate) return;
+                      exitOnboarding(true);
+                      return;
+                    }
+                    _controller.nextPage(
+                      duration: const Duration(milliseconds: 200),
+                      curve: Curves.easeInOut,
+                    );
+                  },
+                  style: const ButtonStyle(
+                    padding: WidgetStatePropertyAll(
+                      EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    ),
+                  ),
+                  child: currentPage == 0
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const Text(
+                              "Vamos Começar",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                            ),
+                            Space.horizontal(4),
+                            const Icon(Icons.keyboard_arrow_right, size: 24),
+                          ],
+                        )
+                      : const Text(
+                          "Criar tarefa",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        ),
+                ),
               ),
-              Space.vertical(12),
-              SmoothPageIndicator(controller: _controller, count: 2,effect: ExpandingDotsEffect(),),
-              SizedBox(height: MediaQuery.of(context).viewInsets.bottom > 0 ? 50 : 20,)
+              if (!keyboardOpen) ...[
+                Space.vertical(12),
+                SmoothPageIndicator(
+                  controller: _controller,
+                  count: 2,
+                  effect: ExpandingDotsEffect(),
+                ),
+                const SizedBox(height: 8),
+              ],
             ],
           ),
         ),

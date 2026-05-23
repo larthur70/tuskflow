@@ -10,16 +10,19 @@ class MyTextForm extends StatelessWidget {
 
   final String? Function(String?)? validator;
   final IconData? icon;
+  final EdgeInsets scrollPadding;
+
   const MyTextForm({
     super.key,
     required this.titulo,
-  
     this.hintText,
     this.isDate = false,
-    this.icon,required this.controller,
+    this.icon,
+    required this.controller,
     this.onTap,
-    this.validator
-    });
+    this.validator,
+    this.scrollPadding = const EdgeInsets.all(20),
+  });
 
   
 
@@ -32,11 +35,11 @@ class MyTextForm extends StatelessWidget {
         Text(titulo,style: TextStyle(fontWeight: FontWeight.bold,fontSize: 16),),
         Space.vertical(8),
         TextFormField(
-       
           validator: validator,
           readOnly: isDate,
           controller: controller,
           onTap: onTap,
+          scrollPadding: scrollPadding,
           decoration: InputDecoration(
             filled: true,
             

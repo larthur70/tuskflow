@@ -59,8 +59,8 @@ service cloud.firestore {
     function userImmutableFieldsPreserved() {
       return (!('createdAt' in resource.data)
           || request.resource.data.createdAt == resource.data.createdAt)
-        && (!('lastNotificationSentAt' in resource.data)
-          || request.resource.data.lastNotificationSentAt == resource.data.lastNotificationSentAt);
+          && (!('lastNotificationSentAt' in resource.data)
+          || request.resource.data.lastNotificationSentAt == resource.data.lastNotificationSentAt)
     }
 
     function earlyStartsCountOk() {

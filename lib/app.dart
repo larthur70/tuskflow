@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:provider/provider.dart';
@@ -34,6 +35,35 @@ class App extends StatelessWidget {
   static const warning = Color(0xFFFFB300); // atenção
   static const success = Color(0xFF43A047); // concluído
 
+  static bool get _isAndroid => defaultTargetPlatform == TargetPlatform.android;
+
+  static ThemeData _appTheme() {
+    final primaryColor = _isAndroid ? primaryBlue : Colors.blue;
+    return ThemeData(
+      textTheme: GoogleFonts.plusJakartaSansTextTheme(),
+      colorScheme: ColorScheme(
+        brightness: Brightness.light,
+        primary: primaryColor,
+        onPrimary: Colors.white,
+        secondary: secondaryBlue,
+        onSecondary: Colors.white,
+        error: danger,
+        onError: Colors.white,
+        surface: surface,
+        onSurface: Colors.black87,
+      ),
+      progressIndicatorTheme: _isAndroid
+          ? const ProgressIndicatorThemeData(color: primaryBlue)
+          : null,
+    );
+  }
+
+  static Widget _androidLoaderOverlay(dynamic _) {
+    return const Center(
+      child: CircularProgressIndicator(color: primaryBlue),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -52,23 +82,10 @@ class App extends StatelessWidget {
       ],
       builder: (context,child) {
         return GlobalLoaderOverlay(
+          overlayWidgetBuilder:
+              _isAndroid ? _androidLoaderOverlay : null,
           child: MaterialApp(
-            theme: ThemeData(
-              textTheme: GoogleFonts.plusJakartaSansTextTheme(),
-              colorScheme: ColorScheme(
-                brightness: Brightness.light,
-                primary: Colors.blue,
-                onPrimary: Colors.white,
-                secondary: secondaryBlue,
-                onSecondary: Colors.white,
-                error: danger,
-                onError: Colors.white,
-                surface: surface,
-                onSurface: Colors.black87,
-                
-                
-              ),
-            ),
+            theme: _appTheme(),
             onGenerateRoute: (settings){
               if (settings.name == '/timer_page'){
                 final task = settings.arguments as TaskModel;

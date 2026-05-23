@@ -298,12 +298,16 @@ class _TaskCardState extends State<TaskCard> {
   }
 
   Widget _buildCardContent(ColorScheme colorScheme) {
+    final compact = widget.unique && MediaQuery.sizeOf(context).height < 700;
     return isVisible == false ? SizedBox.shrink() :  
     Stack(
       children: [
         Container(
           width: double.infinity,
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+          padding: EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: compact ? 16 : 24,
+          ),
           decoration: BoxDecoration(
             color: Colors.white,
             border: widget.task.initialized
@@ -331,7 +335,7 @@ class _TaskCardState extends State<TaskCard> {
                         size: 40,
                       ),
                     ),
-                    Space.vertical(16),
+                    Space.vertical(compact ? 12 : 16),
                   ],
                 ),
               Text(
@@ -340,7 +344,7 @@ class _TaskCardState extends State<TaskCard> {
                 widget.task.title,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: widget.unique ? 25 : 20,
+                  fontSize: widget.unique ? (compact ? 22 : 25) : 20,
                 ),
               ),
               Space.vertical(8),
@@ -363,7 +367,7 @@ class _TaskCardState extends State<TaskCard> {
               if (widget.unique)
                 Column(
                   children: [
-                    Space.vertical(20),
+                    Space.vertical(compact ? 12 : 20),
                     SizedBox(
                       width: double.infinity,
                       child: MyButton(

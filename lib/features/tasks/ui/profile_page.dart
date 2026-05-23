@@ -18,10 +18,8 @@ bool _userHasGoogleOrAppleLinked(User? user) {
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
-  static final Uri _suggestionEmailUri = Uri(
-    scheme: 'mailto',
-    path: 'luizarthurbolzani@gmail.com',
-    queryParameters: {'subject': 'Sugestão TuksFlow'},
+  static final Uri _suggestionFormUri = Uri.parse(
+    'https://docs.google.com/forms/d/e/1FAIpQLSe-ETmM9FxWk_c_X2UZ9KVC_wzapCvkc-R3OiPlooxem0mr_A/viewform?usp=publish-editor',
   );
 
   @override
@@ -33,11 +31,14 @@ class _ProfilePageState extends State<ProfilePage> {
   bool _appleLoading = false;
   UserModel? _firestoreUser;
 
-  Future<void> _openSuggestionEmail(BuildContext context) async {
-    if (!await launchUrl(ProfilePage._suggestionEmailUri)) {
+  Future<void> _openSuggestionForm(BuildContext context) async {
+    if (!await launchUrl(
+      ProfilePage._suggestionFormUri,
+      mode: LaunchMode.externalApplication,
+    )) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Não foi possível abrir o e-mail.')),
+        const SnackBar(content: Text('Não foi possível abrir o formulário.')),
       );
     }
   }
@@ -255,7 +256,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: () => _openSuggestionEmail(context),
+                onPressed: () => _openSuggestionForm(context),
                 child: const Text(
                   'Envie uma sugestão para melhorar o app',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),

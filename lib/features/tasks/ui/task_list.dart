@@ -72,29 +72,51 @@ Widget _buildEmptyState() {
   );
 }
 
-Widget _buildUniqueTaskLayout(TaskModel task){
-  return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              key: const ValueKey('unique'),
-              children: [
-                Text("Sua tarefa está pronta para ser começada!",style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold
-                ),textAlign: TextAlign.center,),
-                Space.vertical(12),
-                Text("Inicie por 5 minutos e vença a procrastinação!",style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey.shade700
-                ),textAlign: TextAlign.center
-                ,),
-                Space.vertical(32),
-                TaskCard(task: task,unique: true,),
-                Text('"O segredo é apenas começar. Pequenos passos geram grandes conquistas"',style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey.shade700
-                ),textAlign: TextAlign.center,)
-              ],
-            );
+Widget _buildUniqueTaskLayout(TaskModel task) {
+  return LayoutBuilder(
+    key: const ValueKey('unique'),
+    builder: (context, _) {
+      final compact = MediaQuery.sizeOf(context).height < 700;
+      final headlineSize = compact ? 26.0 : 32.0;
+
+      return SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              "Sua tarefa está pronta para ser começada!",
+              style: TextStyle(
+                fontSize: headlineSize,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            Space.vertical(compact ? 8 : 12),
+            Text(
+              "Inicie por 5 minutos e vença a procrastinação!",
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey.shade700,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            Space.vertical(compact ? 20 : 32),
+            TaskCard(task: task, unique: true),
+            Space.vertical(compact ? 16 : 24),
+            Text(
+              '"O segredo é apenas começar. Pequenos passos geram grandes conquistas"',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey.shade700,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 80),
+          ],
+        ),
+      );
+    },
+  );
 }
 
 Widget _buildListLayout(List<TaskModel> tasks){

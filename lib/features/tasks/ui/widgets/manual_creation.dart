@@ -9,11 +9,20 @@ import 'package:validatorless/validatorless.dart';
 
 class ManualCreation extends StatefulWidget {
 
-  final GlobalKey formKey;
+  final GlobalKey<FormState> formKey;
   final TextEditingController dateController;
   final Function(DateTime?) onDateSelected;
   final TextEditingController titleController;
-  const ManualCreation({super.key, required this.dateController,required this.titleController,required this.formKey,required this.onDateSelected});
+  final VoidCallback? onFieldFocused;
+
+  const ManualCreation({
+    super.key,
+    required this.dateController,
+    required this.titleController,
+    required this.formKey,
+    required this.onDateSelected,
+    this.onFieldFocused,
+  });
 
   @override
   State<ManualCreation> createState() => _ManualCreationState();
@@ -26,8 +35,9 @@ class _ManualCreationState extends State<ManualCreation> {
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
 
-  Future<void> getDate()async{
-    selectedDate = await Picktime.pickDate(context: context,selectedDate: selectedDate);
+  Future<void> getDate() async {
+    widget.onFieldFocused?.call();
+    selectedDate = await Picktime.pickDate(context: context, selectedDate: selectedDate);
     widget.onDateSelected(selectedDate);
     setState(() {
       if (selectedDate != null){
@@ -64,13 +74,25 @@ class _ManualCreationState extends State<ManualCreation> {
                 MyTextForm(
                   validator: Validatorless.multiple([
                     Validatorless.required("Digite um título para tarefa"),
-                    Validatorless.max(50, "Digite no máximo 50 caracteres")
+                    Validatorless.max(50, "Digite no máximo 50 caracteres"),
                   ]),
-                  titulo: "Título da tarefa",hintText: "Ex: Trabalho de biologia",controller: widget.titleController,),
+                  titulo: "Título da tarefa",
+                  hintText: "Ex: Trabalho de biologia",
+                  controller: widget.titleController,
+                  scrollPadding: const EdgeInsets.only(bottom: 160),
+                  onTap: widget.onFieldFocused,
+                ),
                 Space.vertical(16),
                 MyTextForm(
                   validator: Validatorless.required("Selecione uma data válida"),
-                  titulo: "Data de entrega",icon: Icons.calendar_month,controller: widget.dateController,isDate: true,onTap: getDate,hintText: "Selecione a data de entrega",),
+                  titulo: "Data de entrega",
+                  icon: Icons.calendar_month,
+                  controller: widget.dateController,
+                  isDate: true,
+                  onTap: getDate,
+                  hintText: "Selecione a data de entrega",
+                  scrollPadding: const EdgeInsets.only(bottom: 160),
+                ),
                 Space.vertical(16),
               ],
             ),
