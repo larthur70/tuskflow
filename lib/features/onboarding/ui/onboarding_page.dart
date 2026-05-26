@@ -8,6 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:tuskflow/features/notifications/notification_service.dart';
 import 'package:tuskflow/core/utils/critical_operation_timeout.dart';
 import 'package:tuskflow/features/onboarding/controllers/onboarding_controller.dart';
+import 'package:tuskflow/features/onboarding/controllers/onboarding_setup_controller.dart';
 import 'package:tuskflow/features/onboarding/ui/tela1.dart';
 import 'package:tuskflow/features/onboarding/ui/tela2.dart';
 import 'package:tuskflow/utils/space.dart';
@@ -49,29 +50,35 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
   Future<void> exitOnboarding(bool allFlux)async{
     final title = titleController.text;
     final overlay = context.loaderOverlay;
+    final onboardingController = context.read<OnboardingController>();
+    final setupController = context.read<OnboardingSetupController>();
+    final messenger = ScaffoldMessenger.maybeOf(context);
 
     if(allFlux && dueDate == null) return;
     
     overlay.show();
     try {
-      await context.read<OnboardingController>().initializeUser(
+      await onboardingController.initializeUser(
         completedOnboarding: allFlux,
         title: title,
         dueDate: dueDate,
       );
 
+      await setupController.markComplete();
+
       final String? uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid != null) {
         unawaited(NotificationService.instance.uploadFcmToken(uid));
       }
-      // AuthWrapper already switches to HomePage after signInAnonymously().
     } catch (err) {
-      print("erro no onboarding $err");
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(criticalOperationErrorMessage(err))),
-        );
+      debugPrint('erro no onboarding $err');
+      if (FirebaseAuth.instance.currentUser != null) {
+        await FirebaseAuth.instance.signOut();
+        await setupController.reset();
       }
+      messenger?.showSnackBar(
+        SnackBar(content: Text(criticalOperationErrorMessage(err))),
+      );
     } finally {
       // Must hide even when unmounted: sign-in rebuilds AuthWrapper and
       // disposes this page while the GlobalLoaderOverlay is still visible.

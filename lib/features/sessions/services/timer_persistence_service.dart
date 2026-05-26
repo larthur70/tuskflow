@@ -119,6 +119,12 @@ class TimerPersistenceService {
     await _prefs.remove(_keyStartTimestamp);
   }
 
+  /// Keeps [is_running] true without resetting [start_timestamp] (background/kill).
+  Future<void> markSessionRunning(String taskId) async {
+    await _prefs.setString(_keyTaskId, taskId);
+    await _prefs.setBool(_keyIsRunning, true);
+  }
+
   Future<Map<String, dynamic>?> getActiveSession() async {
     final String? taskId = await _prefs.getString(_keyTaskId);
     final int? startTs = await _prefs.getInt(_keyStartTimestamp);

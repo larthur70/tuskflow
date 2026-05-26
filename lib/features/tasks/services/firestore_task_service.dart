@@ -56,7 +56,8 @@ class FirestoreTaskService {
         .snapshots()
         .map((snapshot) {
           return snapshot.docs
-              .map((doc) => TaskModel.fromFirestore(doc))
+              .map(TaskModel.tryFromFirestore)
+              .whereType<TaskModel>()
               .toList();
         });
   }
@@ -85,7 +86,7 @@ class FirestoreTaskService {
         .get();
 
     if (!doc.exists) return null;
-    return TaskModel.fromFirestore(doc);
+    return TaskModel.tryFromFirestore(doc);
   }
 
   Future<void> editTask(

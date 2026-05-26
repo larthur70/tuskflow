@@ -11,8 +11,8 @@ class TaskList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    context.watch<TaskController>();
-    final taskStream = context.read<TaskController>().taskStream;
+    final taskController = context.watch<TaskController>();
+    final taskStream = taskController.taskStream;
     final uidKey =
         FirebaseAuth.instance.currentUser?.uid ?? 'guest';
     return Padding(
@@ -23,7 +23,7 @@ class TaskList extends StatelessWidget {
         bottom: 16,
       ),
       child: StreamBuilder(
-        key: ValueKey<String>(uidKey),
+        key: ValueKey<String>('${uidKey}_${taskController.streamGeneration}'),
         stream: taskStream,
         builder: (context, snapshot) {
           final tasks = snapshot.data ?? [];

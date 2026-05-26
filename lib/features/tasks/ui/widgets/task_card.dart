@@ -5,6 +5,7 @@ import 'package:top_snackbar_flutter/top_snack_bar.dart';
 import 'package:tuskflow/features/tasks/models/task_model.dart';
 import 'package:tuskflow/features/tasks/services/firestore_task_service.dart';
 import 'package:tuskflow/features/tasks/ui/widgets/edit_task_popup.dart';
+import 'package:tuskflow/features/sessions/ui/timer_route_args.dart';
 import 'package:tuskflow/features/tasks/ui/widgets/my_button.dart';
 import 'package:tuskflow/utils/space.dart';
 
@@ -375,7 +376,7 @@ class _TaskCardState extends State<TaskCard> {
                           Navigator.pushNamed(
                             context,
                             "/timer_page",
-                            arguments: widget.task,
+                            arguments: TimerRouteArgs(task: widget.task),
                           );
                         },
 
@@ -425,7 +426,7 @@ class _TaskCardState extends State<TaskCard> {
                         Navigator.pushNamed(
                           context,
                           "/timer_page",
-                          arguments: widget.task,
+                          arguments: TimerRouteArgs(task: widget.task),
                         );
                       },
                       text: widget.task.initialized

@@ -19,13 +19,42 @@ class TaskModel {
     required this.finished
   });
 
-  factory TaskModel.fromFirestore(DocumentSnapshot doc){
-    final data = doc.data() as Map<String,dynamic>;
+  static DateTime? _timestampToDate(dynamic value) {
+    if (value is Timestamp) return value.toDate();
+    if (value is DateTime) return value;
+    return null;
+  }
 
-    return TaskModel(id: doc.id, title: data['title'],
-    dueDate: (data['dueDate'] as Timestamp).toDate(),
-    finished: data['finished'],
-    createdAt: (data['createdAt'] as Timestamp).toDate(), initialized: data['initialized']);
+  /// Returns null when the document is missing required fields.
+  static TaskModel? tryFromFirestore(DocumentSnapshot doc) {
+    final Object? raw = doc.data();
+    if (raw is! Map<String, dynamic>) return null;
+
+    final String? title = raw['title'] as String?;
+    final DateTime? dueDate = _timestampToDate(raw['dueDate']);
+    if (title == null || title.trim().isEmpty || dueDate == null) {
+      return null;
+    }
+
+    final DateTime createdAt =
+        _timestampToDate(raw['createdAt']) ?? DateTime.now();
+
+    return TaskModel(
+      id: doc.id,
+      title: title.trim(),
+      dueDate: dueDate,
+      finished: raw['finished'] as bool? ?? false,
+      createdAt: createdAt,
+      initialized: raw['initialized'] as bool? ?? false,
+    );
+  }
+
+  factory TaskModel.fromFirestore(DocumentSnapshot doc) {
+    final TaskModel? task = tryFromFirestore(doc);
+    if (task == null) {
+      throw FormatException('Invalid task document: ${doc.id}');
+    }
+    return task;
   }
 
   String get remainingTimeText {

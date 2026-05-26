@@ -20,6 +20,12 @@ class AnalyticsService {
   Future<void> logSessionExtended15Min() =>
       _safeLog(AnalyticsEvents.sessionExtended15Min);
 
+  Future<void> logNotificationAccepted() =>
+      _safeLog(AnalyticsEvents.notificationAccepted);
+
+  Future<void> logNotificationDeclined() =>
+      _safeLog(AnalyticsEvents.notificationDeclined);
+
   Future<void> _safeLog(String name, [Map<String, Object>? parameters]) async {
     try {
       await _analytics.logEvent(name: name, parameters: parameters);

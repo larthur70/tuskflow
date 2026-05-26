@@ -1,7 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:tuskflow/app.dart';
 import 'package:tuskflow/features/notifications/notification_service.dart';
 import 'package:tuskflow/firebase_options.dart';
@@ -26,26 +25,8 @@ void main() async {
   }
 
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  final FirebaseMessaging messaging = FirebaseMessaging.instance;
-  await messaging.requestPermission(
-    alert: true,
-    badge: true,
-    sound: true,
-  );
-  NotificationService.instance.initialize();
+  await NotificationService.instance.initialize();
   NotificationService.instance.registerTokenRefreshHandler();
-
-  const AndroidInitializationSettings initializationSettingsAndroid =
-      AndroidInitializationSettings('@mipmap/ic_launcher');
-  const DarwinInitializationSettings initializationSettingsIOS =
-      DarwinInitializationSettings();
-  const InitializationSettings initializationSettings = InitializationSettings(
-    android: initializationSettingsAndroid,
-    iOS: initializationSettingsIOS,
-  );
-  await FlutterLocalNotificationsPlugin().initialize(
-    settings: initializationSettings,
-  );
 
   runApp(const App());
 }

@@ -13,28 +13,9 @@ import FirebaseMessaging
 
     if #available(iOS 10.0, *) {
       UNUserNotificationCenter.current().delegate = self
-
-      let options: UNAuthorizationOptions = [.alert, .badge, .sound]
-
-      UNUserNotificationCenter.current().requestAuthorization(
-        options: options
-      ) { granted, error in
-
-        if let error = error {
-          print("Push permission error: \(error)")
-        }
-
-        print("Push permission granted: \(granted)")
-      }
-    } else {
-      let settings = UIUserNotificationSettings(
-        types: [.alert, .badge, .sound],
-        categories: nil
-      )
-
-      application.registerUserNotificationSettings(settings)
     }
 
+    // Permission is requested from Flutter after onboarding (custom bottom sheet).
     application.registerForRemoteNotifications()
 
     GeneratedPluginRegistrant.register(with: self)

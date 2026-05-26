@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:tuskflow/core/services/user_service.dart';
 import 'package:tuskflow/features/sessions/controller/timer_controller.dart';
 import 'package:tuskflow/features/sessions/services/firestore_session_service.dart';
+import 'package:tuskflow/features/sessions/services/first_timer_tips_service.dart';
 import 'package:tuskflow/features/sessions/services/timer_persistence_service.dart';
 import 'package:tuskflow/features/sessions/ui/widgets/control_timer_button.dart';
 import 'package:tuskflow/features/tasks/models/task_model.dart';
@@ -16,7 +17,13 @@ import 'package:tuskflow/utils/space.dart';
 
 class TimerPage extends StatefulWidget {
   final TaskModel task;
-  const TimerPage({super.key, required this.task});
+  final bool autoStart;
+
+  const TimerPage({
+    super.key,
+    required this.task,
+    this.autoStart = true,
+  });
 
   @override
   State<TimerPage> createState() => _TimerPageState();
@@ -34,9 +41,9 @@ class _TimerPageState extends State<TimerPage> with WidgetsBindingObserver {
       final timerController = context.read<TimerController>();
       timerController.setTask(widget.task);
       await TimerPersistenceService().saveActiveTaskSnapshot(widget.task);
-      await timerController.restoreSession();
+      final bool restored = await timerController.restoreSession();
 
-      if (!timerController.isRuning) {
+      if ((!restored || widget.autoStart) && !timerController.isRuning) {
         timerController.startTimer();
       }
     });
@@ -53,8 +60,17 @@ class _TimerPageState extends State<TimerPage> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      context.read<TimerController>().recalculateTime();
+    final timerController = context.read<TimerController>();
+    switch (state) {
+      case AppLifecycleState.resumed:
+        timerController.onAppResumed();
+      case AppLifecycleState.paused:
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.detached:
+      case AppLifecycleState.hidden:
+        timerController.onAppBackgrounded();
+      default:
+        break;
     }
   }
 
@@ -64,15 +80,54 @@ class _TimerPageState extends State<TimerPage> with WidgetsBindingObserver {
     return "$m:$s";
   }
 
-  Future<void> finishSession()async{
+  Future<void> _navigateToSessionSuccess({
+    required int durationSeconds,
+    required bool syncedOnline,
+  }) async {
+    if (!mounted) return;
+
+    context.read<UserService>().invalidateUserCache();
+
+    final bool isEarlyStart = widget.task.isEarlyStartAt();
+    int earlyStartsCount = 0;
+    if (isEarlyStart) {
+      final userData = await context.read<UserService>().getUserData(
+        forceRefresh: syncedOnline,
+      );
+      earlyStartsCount = userData?.earlyStartsCount ?? 0;
+    }
+
+    if (!mounted) return;
+
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.maybeOf(context);
+
+    await navigator.pushReplacementNamed(
+      '/succes_page',
+      arguments: {
+        'duration': durationSeconds,
+        'isEarlyStart': isEarlyStart,
+        'earlyStartsCount': earlyStartsCount,
+      },
+    );
+
+    if (!syncedOnline && messenger != null) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text(offlineSessionSyncSnackbarMessage)),
+      );
+    }
+  }
+
+  Future<void> finishSession() async {
     final timerController = context.read<TimerController>();
     final int finalRealTempo = timerController.getElapsedSeconds();
     final loader = context.loaderOverlay;
 
     loader.show();
     final batch = FirebaseFirestore.instance.batch();
-    try{
-      timerController.cancelTimer();
+    Object? syncError;
+    try {
+      await timerController.cancelTimer();
 
       if (!widget.task.initialized) {
         await context.read<FirestoreTaskService>().inicializeTask(
@@ -86,44 +141,38 @@ class _TimerPageState extends State<TimerPage> with WidgetsBindingObserver {
         continuedBeyond5min: finalRealTempo > 300,
         batch: batch,
       );
-      await context.read<UserService>().incrementProcrastinationDefeated(widget.task, batch);
-    
-      await withCriticalOperationTimeout(batch.commit());
-      if (!mounted) return;
+      await context.read<UserService>().incrementProcrastinationDefeated(
+        widget.task,
+        batch,
+      );
 
-      context.read<UserService>().invalidateUserCache();
-
-      final bool isEarlyStart = widget.task.isEarlyStartAt();
-      int earlyStartsCount = 0;
-      if (isEarlyStart) {
-        final userData = await context.read<UserService>().getUserData(
-          forceRefresh: true,
-        );
-        earlyStartsCount = userData?.earlyStartsCount ?? 0;
+      try {
+        await withCriticalOperationTimeout(batch.commit());
+      } catch (err) {
+        if (!isCriticalOperationOfflineError(err)) rethrow;
+        syncError = err;
+        try {
+          await batch.commit();
+        } catch (retryErr) {
+          debugPrint('Offline batch commit retry: $retryErr');
+        }
       }
 
-      if (!mounted) return;
-
-      Navigator.pop(context);
-      Navigator.pushReplacementNamed(
-        context,
-        "/succes_page",
-        arguments: {
-          'duration': finalRealTempo,
-          'isEarlyStart': isEarlyStart,
-          'earlyStartsCount': earlyStartsCount,
-        },
+      await FirstTimerTipsService().markFirstTimerCompletedIfNeeded();
+      loader.hide();
+      await _navigateToSessionSuccess(
+        durationSeconds: finalRealTempo,
+        syncedOnline: syncError == null,
       );
-      
     } catch (err) {
-      debugPrint("Erro ao finalizar sessão: $err");
+      debugPrint('Erro ao finalizar sessão: $err');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(criticalOperationErrorMessage(err))),
         );
       }
     } finally {
-      loader.hide();
+      if (mounted) loader.hide();
     }
   }
 
@@ -196,13 +245,12 @@ class _TimerPageState extends State<TimerPage> with WidgetsBindingObserver {
                     backgroundColor: colorScheme.primary,
                   ),
                   ControllTimerButton(
-                    onTap: () {
+                    onTap: () async {
                       final secondsNow = timerController.getElapsedSeconds();
                       
                       if(secondsNow <= 5){
-                        timerController.cancelTimer();
-                        Navigator.pop(context);
-                        
+                        await timerController.cancelTimer();
+                        if (context.mounted) Navigator.pop(context);
                       } else {
                         showDialog(
                         context: context,

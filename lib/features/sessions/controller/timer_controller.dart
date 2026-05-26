@@ -108,16 +108,16 @@ class TimerController extends ChangeNotifier {
         acumulatedSeconds = savedAccumulated;
         startTime = savedStartTime;
         isRuning = true;
-        notifyListeners();
         recalculateTime();
         _resumeTimerLoop();
       } else {
+        timer?.cancel();
         acumulatedSeconds = savedAccumulated;
         startTime = null;
         isRuning = false;
-        notifyListeners();
         _updateDisplayTime();
       }
+      notifyListeners();
       return true;
     }
     return false;
@@ -189,7 +189,7 @@ class TimerController extends ChangeNotifier {
     await _persistence.savePauseState(acumulatedSeconds);
   }
 
-  void cancelTimer() async {
+  Future<void> cancelTimer() async {
     timer?.cancel();
 
     _resetMilestoneFlags();
@@ -204,18 +204,41 @@ class TimerController extends ChangeNotifier {
   }
 
   void recalculateTime() {
-    if (startTime == null) return;
-
-    final elapsed = getElapsedSeconds();
-
-    if (elapsed < totalSeconds) {
-      actualSeconds = totalSeconds - elapsed;
-      isCrescentTimer = false;
-    } else {
-      isCrescentTimer = true;
-      actualSeconds = elapsed - totalSeconds;
+    if (isRuning && startTime != null) {
+      final elapsed = getElapsedSeconds();
+      if (elapsed < totalSeconds) {
+        actualSeconds = totalSeconds - elapsed;
+        isCrescentTimer = false;
+      } else {
+        isCrescentTimer = true;
+        actualSeconds = elapsed - totalSeconds;
+      }
+      _maybeLogSessionMilestones(elapsed);
+      notifyListeners();
+      return;
     }
-    _maybeLogSessionMilestones(elapsed);
-    notifyListeners();
+
+    _updateDisplayTime();
+  }
+
+  void onAppResumed() {
+    if (isRuning && startTime != null) {
+      recalculateTime();
+      _resumeTimerLoop();
+    } else {
+      _updateDisplayTime();
+    }
+  }
+
+  Future<void> onAppBackgrounded() async {
+    final task = _currentTask;
+    if (task == null) return;
+
+    if (isRuning) {
+      await _persistence.markSessionRunning(task.id);
+      return;
+    }
+
+    await _persistence.savePauseState(acumulatedSeconds);
   }
 }

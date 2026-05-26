@@ -10,7 +10,7 @@ class OnboardingController {
     String? title,
     DateTime? dueDate
   })async{
-    final credential = await withCriticalOperationTimeout(
+    final credential = await withOnboardingOperationTimeout(
       _auth.signInAnonymously(),
     );
     final user = credential.user;
@@ -28,7 +28,7 @@ class OnboardingController {
     // usuário saiu pelo X
     if (!completedOnboarding) {
       batch.set(userRef, userData, SetOptions(merge: true));
-      await withCriticalOperationTimeout(batch.commit());
+      await withOnboardingOperationTimeout(batch.commit());
       return;
     }
 
@@ -51,6 +51,6 @@ class OnboardingController {
       "dueDate": Timestamp.fromDate(dueDate),
     });
 
-    await withCriticalOperationTimeout(batch.commit());
+    await withOnboardingOperationTimeout(batch.commit());
   }
 }

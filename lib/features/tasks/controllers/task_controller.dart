@@ -14,6 +14,7 @@ class TaskController extends ChangeNotifier {
       if (newUid != _lastUid) {
         _lastUid = newUid;
         _taskStream = null;
+        _streamGeneration++;
         notifyListeners();
       }
     });
@@ -24,10 +25,19 @@ class TaskController extends ChangeNotifier {
   Stream<List<TaskModel>>? _taskStream;
   StreamSubscription<User?>? _authSubscription;
   String? _lastUid;
+  int _streamGeneration = 0;
+
+  int get streamGeneration => _streamGeneration;
 
   Stream<List<TaskModel>> get taskStream {
     _taskStream ??= _service.getTasks();
     return _taskStream!;
+  }
+
+  void invalidateTaskStream() {
+    _taskStream = null;
+    _streamGeneration++;
+    notifyListeners();
   }
 
   @override

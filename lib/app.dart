@@ -7,6 +7,7 @@ import 'package:tuskflow/core/services/user_service.dart';
 import 'package:tuskflow/features/analytics/services/analytics_service.dart';
 import 'package:tuskflow/features/auth/auth_wrapper.dart';
 import 'package:tuskflow/features/onboarding/controllers/onboarding_controller.dart';
+import 'package:tuskflow/features/onboarding/controllers/onboarding_setup_controller.dart';
 import 'package:tuskflow/features/sessions/controller/timer_controller.dart';
 import 'package:tuskflow/features/sessions/services/firestore_session_service.dart';
 import 'package:tuskflow/features/sessions/ui/session_end_page.dart';
@@ -17,6 +18,7 @@ import 'package:tuskflow/features/tasks/ui/create_task_page.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:tuskflow/features/tasks/ui/profile_page.dart';
 import 'package:tuskflow/features/sessions/ui/timer_page.dart';
+import 'package:tuskflow/features/sessions/ui/timer_route_args.dart';
 
 
 class App extends StatelessWidget {
@@ -73,6 +75,7 @@ class App extends StatelessWidget {
         Provider(create: (context)=>FirestoreTaskService()),
         Provider(create: (context) => FirestoreSessionService()),
         Provider(create: (context) => OnboardingController()),
+        ChangeNotifierProvider(create: (_) => OnboardingSetupController()),
         Provider(create: (context) => AnalyticsService()),
         ChangeNotifierProvider(
           create: (context) => TimerController(context.read<AnalyticsService>()),
@@ -85,11 +88,22 @@ class App extends StatelessWidget {
           overlayWidgetBuilder:
               _isAndroid ? _androidLoaderOverlay : null,
           child: MaterialApp(
+            debugShowCheckedModeBanner: false,
             theme: _appTheme(),
             onGenerateRoute: (settings){
-              if (settings.name == '/timer_page'){
-                final task = settings.arguments as TaskModel;
-                return MaterialPageRoute(builder: (context) => TimerPage(task: task,));
+              if (settings.name == '/timer_page') {
+                final TimerRouteArgs args = settings.arguments is TimerRouteArgs
+                    ? settings.arguments as TimerRouteArgs
+                    : TimerRouteArgs(
+                        task: settings.arguments as TaskModel,
+                        autoStart: false,
+                      );
+                return MaterialPageRoute(
+                  builder: (context) => TimerPage(
+                    task: args.task,
+                    autoStart: args.autoStart,
+                  ),
+                );
               }
               return null;
             },

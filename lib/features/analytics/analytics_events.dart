@@ -4,4 +4,6 @@ abstract final class AnalyticsEvents {
   static const String timer5MinStart = 'timer_5min_start';
   static const String timer5MinSuccess = 'timer_5min_success';
   static const String sessionExtended15Min = 'session_extended_15min';
+  static const String notificationAccepted = 'notification_accepted';
+  static const String notificationDeclined = 'notification_declined';
 }

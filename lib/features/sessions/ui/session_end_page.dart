@@ -120,7 +120,7 @@ class _SessionEndPageState extends State<SessionEndPage> {
           width: double.infinity,
           child: FilledButton(
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
             },
             child: const Text(
               "Voltar para tarefas",
@@ -160,7 +160,7 @@ class _SessionEndPageState extends State<SessionEndPage> {
         automaticallyImplyLeading: false,
         leading: IconButton(
           onPressed: () {
-            Navigator.pop(context);
+            Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
           },
           icon: Icon(Icons.close, color: colorScheme.primary),
         ),

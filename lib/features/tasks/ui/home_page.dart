@@ -3,10 +3,14 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:tuskflow/features/notifications/notification_service.dart';
+import 'package:tuskflow/features/notifications/ui/notification_permission_bottom_sheet.dart';
+import 'package:tuskflow/features/onboarding/ui/first_timer_tips_bottom_sheet.dart';
+import 'package:tuskflow/features/sessions/services/first_timer_tips_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:tuskflow/features/pro_analitcs/analitcs_page.dart';
 import 'package:tuskflow/features/sessions/services/timer_persistence_service.dart';
+import 'package:tuskflow/features/tasks/controllers/task_controller.dart';
 import 'package:tuskflow/features/tasks/models/task_model.dart';
 import 'package:tuskflow/features/tasks/services/firestore_task_service.dart';
 import 'package:tuskflow/features/tasks/ui/task_list.dart';
@@ -54,9 +58,34 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<TaskController>().invalidateTaskStream();
+    });
     _checkActiveSession();
     _uploadFcmTokenIfNeeded();
+    _maybeShowNotificationPermissionSheet();
+    _maybeShowFirstTimerTipsSheet();
     verBundleId();
+  }
+
+  void _maybeShowFirstTimerTipsSheet() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      final shouldShow = await FirstTimerTipsService().shouldShowTipsSheet();
+      if (!mounted || !shouldShow) return;
+      await showFirstTimerTipsBottomSheet(context);
+    });
+  }
+
+  void _maybeShowNotificationPermissionSheet() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      final shouldShow =
+          await NotificationService.instance.shouldShowNotificationPrompt();
+      if (!mounted || !shouldShow) return;
+      await showNotificationPermissionBottomSheet(context);
+    });
   }
 
   verBundleId()async{

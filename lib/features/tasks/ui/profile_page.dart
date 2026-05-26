@@ -1,9 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tuskflow/core/models/user_model.dart';
 import 'package:tuskflow/core/services/auth_service.dart';
 import 'package:tuskflow/core/services/user_service.dart';
+import 'package:tuskflow/features/notifications/notification_service.dart';
+import 'package:tuskflow/features/onboarding/controllers/onboarding_setup_controller.dart';
+import 'package:tuskflow/features/onboarding/services/onboarding_setup_service.dart';
 import 'package:tuskflow/features/tasks/ui/widgets/my_filled_button.dart';
 import 'package:tuskflow/utils/space.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -29,7 +33,21 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   bool _googleLoading = false;
   bool _appleLoading = false;
+  bool _logoutLoading = false;
   UserModel? _firestoreUser;
+
+  Future<void> _openNotificationSettings(BuildContext context) async {
+    try {
+      await NotificationService.instance.openDeviceNotificationSettings();
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Não foi possível abrir os ajustes de notificação: $e'),
+        ),
+      );
+    }
+  }
 
   Future<void> _openSuggestionForm(BuildContext context) async {
     if (!await launchUrl(
@@ -130,6 +148,31 @@ class _ProfilePageState extends State<ProfilePage> {
       );
     } finally {
       if (mounted) setState(() => _googleLoading = false);
+    }
+  }
+
+  Future<void> _onLogoutTap(BuildContext context) async {
+    if (_logoutLoading) return;
+
+    final authService = context.read<AuthService>();
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+    setState(() => _logoutLoading = true);
+    try {
+      await authService.logOut();
+      await OnboardingSetupService().clearSetupComplete();
+      if (mounted) {
+        await context.read<OnboardingSetupController>().reset();
+      }
+      if (!mounted) return;
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    } catch (e) {
+      if (!mounted) return;
+      scaffoldMessenger.showSnackBar(
+        SnackBar(content: Text('Erro ao sair: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _logoutLoading = false);
     }
   }
 
@@ -247,6 +290,28 @@ class _ProfilePageState extends State<ProfilePage> {
                                   height: 1.4,
                                 ),
                               ),
+                              Space.vertical(16),
+                              SizedBox(
+                                width: double.infinity,
+                                child: OutlinedButton(
+                                  onPressed: () =>
+                                      _openNotificationSettings(context),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: colorScheme.primary,
+                                    side: BorderSide(color: colorScheme.primary),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    'Gerenciar notificações',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -254,20 +319,45 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     Space.vertical(22),
                     SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: () => _openSuggestionForm(context),
-                child: const Text(
-                  'Envie uma sugestão para melhorar o app',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                ),
-              ),
-            ),
+                      width: double.infinity,
+                      child: FilledButton(
+                        onPressed: () => _openSuggestionForm(context),
+                        child: const Text(
+                          'Envie uma sugestão para melhorar o app',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
-            
+            if (kDebugMode)
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: _logoutLoading ||
+                          _googleLoading ||
+                          _appleLoading
+                      ? null
+                      : () => _onLogoutTap(context),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: colorScheme.error,
+                    side: BorderSide(color: colorScheme.error),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: Text(
+                    _logoutLoading ? 'Saindo…' : 'Sair (teste)',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
