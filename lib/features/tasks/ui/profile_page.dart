@@ -6,18 +6,12 @@ import 'package:tuskflow/core/models/user_model.dart';
 import 'package:tuskflow/core/services/auth_service.dart';
 import 'package:tuskflow/core/services/user_service.dart';
 import 'package:tuskflow/features/notifications/notification_service.dart';
+import 'package:tuskflow/features/auth/services/social_sign_in_flow.dart';
+import 'package:tuskflow/features/auth/ui/widgets/social_sign_in_buttons.dart';
 import 'package:tuskflow/features/onboarding/controllers/onboarding_setup_controller.dart';
 import 'package:tuskflow/features/onboarding/services/onboarding_setup_service.dart';
-import 'package:tuskflow/features/tasks/ui/widgets/my_filled_button.dart';
 import 'package:tuskflow/utils/space.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-bool _userHasGoogleOrAppleLinked(User? user) {
-  if (user == null) return false;
-  return user.providerData.any(
-    (p) => p.providerId == 'google.com' || p.providerId == 'apple.com',
-  );
-}
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -31,8 +25,6 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  bool _googleLoading = false;
-  bool _appleLoading = false;
   bool _logoutLoading = false;
   UserModel? _firestoreUser;
 
@@ -75,80 +67,9 @@ class _ProfilePageState extends State<ProfilePage> {
     if (mounted) setState(() => _firestoreUser = data);
   }
 
-  Future<void> _onAppleTap(BuildContext context) async {
-    if (_appleLoading) return;
-
-    final AuthService authService = context.read<AuthService>();
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
-
-    setState(() => _appleLoading = true);
-    try {
-      final credentials = await authService.linkOrSignInWithApple();
-
-      if (!mounted) return;
-
-      if (credentials == null &&
-          authService.auth.currentUser?.isAnonymous == true) {
-        return;
-      }
-
-      await _loadFirestoreUser();
-
-      if (!mounted) return;
-
-      scaffoldMessenger.showSnackBar(
-        const SnackBar(
-          backgroundColor: Colors.green,
-          content: Text('Conta Apple conectada com sucesso!'),
-        ),
-      );
-      setState(() {});
-    } catch (e) {
-      if (!mounted) return;
-      scaffoldMessenger.showSnackBar(
-        SnackBar(content: Text('Erro ao conectar Apple: $e')),
-      );
-    } finally {
-      if (mounted) setState(() => _appleLoading = false);
-    }
-  }
-
-  Future<void> _onGoogleTap(BuildContext context) async {
-    if (_googleLoading) return;
-
-    final AuthService authService = context.read<AuthService>();
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
-
-    setState(() => _googleLoading = true);
-    try {
-      final credentials = await authService.linkOrSignInWithGoogle();
-
-      if (!mounted) return;
-
-      if (credentials == null &&
-          authService.auth.currentUser?.isAnonymous == true) {
-        return;
-      }
-
-      await _loadFirestoreUser();
-
-      if (!mounted) return;
-
-      scaffoldMessenger.showSnackBar(
-        const SnackBar(
-          backgroundColor: Colors.green,
-          content: Text('Conta Google conectada com sucesso!'),
-        ),
-      );
-      setState(() {});
-    } catch (e) {
-      if (!mounted) return;
-      scaffoldMessenger.showSnackBar(
-        SnackBar(content: Text('Erro ao conectar Google: $e')),
-      );
-    } finally {
-      if (mounted) setState(() => _googleLoading = false);
-    }
+  Future<void> _onSocialSignInSuccess() async {
+    await _loadFirestoreUser();
+    if (mounted) setState(() {});
   }
 
   Future<void> _onLogoutTap(BuildContext context) async {
@@ -203,7 +124,7 @@ class _ProfilePageState extends State<ProfilePage> {
       linkedEmailLine = 'Faça login para ver seu e-mail';
     }
 
-    final bool showSocialLoginButtons = !_userHasGoogleOrAppleLinked(user);
+    final bool showSocialLoginButtons = !userHasGoogleOrAppleLinked(user);
 
     return Scaffold(
       appBar: AppBar(
@@ -226,11 +147,16 @@ class _ProfilePageState extends State<ProfilePage> {
                   children: [
                     Space.vertical(16),
                     Text(
-                      "Olá, $displayName",
-                      style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+                      'Olá, $displayName',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     Text(
                       linkedEmailLine,
+                      textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.grey.shade600,
                         fontSize: 16,
@@ -238,24 +164,46 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     if (showSocialLoginButtons) ...[
                       Space.vertical(32),
-                      Space.vertical(32),
-                      MyFilledButton(
-                        backgroundColor: Colors.black,
-                        svgPath: "assets/images/apple_white.svg",
-                        text: _appleLoading ? "Aguarde…" : "Logar com a apple",
-                        textColor: Colors.white,
-                        onPressed: _appleLoading || _googleLoading
-                            ? null
-                            : () => _onAppleTap(context),
-                      ),
-                      Space.vertical(16),
-                      MyFilledButton(
-                        backgroundColor: Colors.white,
-                        svgPath: "assets/images/google.svg",
-                        text: _googleLoading ? "Aguarde…" : "Logar com Google",
-                        onPressed: _googleLoading || _appleLoading
-                            ? null
-                            : () => _onGoogleTap(context),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Faça login para proteger seus dados',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.primary,
+                              ),
+                            ),
+                            Space.vertical(8),
+                            Text(
+                              'Faça login para não perder seus dados em caso de desinstalação e troca de dispositivo.',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey.shade700,
+                                height: 1.4,
+                              ),
+                            ),
+                            Space.vertical(16),
+                            SocialSignInButtons(
+                              completeOnboardingSetup: false,
+                              googleLabel: 'Logar com Google',
+                              appleLabel: 'Logar com a apple',
+                              googleSuccessSnackBar:
+                                  'Conta Google conectada com sucesso!',
+                              appleSuccessSnackBar:
+                                  'Conta Apple conectada com sucesso!',
+                              onSuccess: _onSocialSignInSuccess,
+                            ),
+                          ],
+                        ),
                       ),
                       Space.vertical(24),
                     ] else
@@ -339,11 +287,7 @@ class _ProfilePageState extends State<ProfilePage> {
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(
-                  onPressed: _logoutLoading ||
-                          _googleLoading ||
-                          _appleLoading
-                      ? null
-                      : () => _onLogoutTap(context),
+                  onPressed: _logoutLoading ? null : () => _onLogoutTap(context),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: colorScheme.error,
                     side: BorderSide(color: colorScheme.error),

@@ -33,6 +33,10 @@ class OnboardingSetupController extends ChangeNotifier {
     } catch (e, st) {
       debugPrint('OnboardingSetupController.loadAndRecoverIfNeeded: $e\n$st');
     } finally {
+      if (!_complete) {
+        // Another flow (e.g. social login) may have marked setup done while we ran.
+        _complete = await _service.isSetupComplete();
+      }
       if (!_complete && FirebaseAuth.instance.currentUser != null) {
         debugPrint(
           'Onboarding setup incomplete — signing out to restart onboarding.',

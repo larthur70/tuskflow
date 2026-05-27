@@ -9,6 +9,7 @@ import 'package:tuskflow/features/notifications/notification_service.dart';
 import 'package:tuskflow/core/utils/critical_operation_timeout.dart';
 import 'package:tuskflow/features/onboarding/controllers/onboarding_controller.dart';
 import 'package:tuskflow/features/onboarding/controllers/onboarding_setup_controller.dart';
+import 'package:tuskflow/features/auth/ui/login_page.dart';
 import 'package:tuskflow/features/onboarding/ui/tela1.dart';
 import 'package:tuskflow/features/onboarding/ui/tela2.dart';
 import 'package:tuskflow/utils/space.dart';
@@ -87,6 +88,90 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
     
   }
 
+  void _openLoginPage() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const LoginPage()),
+    );
+  }
+
+  Widget _buildPage0Actions(ColorScheme colorScheme) {
+    final compactHeight = MediaQuery.sizeOf(context).height < 700;
+
+    final startButton = FilledButton(
+      onPressed: () {
+        _controller.nextPage(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeInOut,
+        );
+      },
+      style: const ButtonStyle(
+        padding: WidgetStatePropertyAll(
+          EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Vamos Começar',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: compactHeight ? 16 : 18,
+            ),
+          ),
+          Space.horizontal(4),
+          const Icon(Icons.keyboard_arrow_right, size: 24),
+        ],
+      ),
+    );
+
+    final knownUserButton = TextButton(
+      onPressed: _openLoginPage,
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      child: Text(
+        'Já conheço o Tusk',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: colorScheme.secondary,
+          fontSize: compactHeight ? 14 : 16,
+        ),
+      ),
+    );
+
+    // Side by side when wide enough: "Já conheço" left, "Vamos Começar" right.
+    // Otherwise stack with primary CTA on top (right-aligned), link below.
+    const sideBySideMinWidth = 340.0;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final sideBySide = constraints.maxWidth >= sideBySideMinWidth;
+
+        if (sideBySide) {
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Flexible(child: knownUserButton),
+              const SizedBox(width: 8),
+              startButton,
+            ],
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Align(alignment: Alignment.centerRight, child: startButton),
+            knownUserButton,
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = ColorScheme.of(context);
@@ -132,51 +217,31 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                   ],
                 ),
               ),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: () {
-                    if (currentPage == 1) {
+              if (currentPage == 0)
+                _buildPage0Actions(colorScheme)
+              else
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: () {
                       final validate = formKey.currentState!.validate();
                       if (!validate) return;
                       exitOnboarding(true);
-                      return;
-                    }
-                    _controller.nextPage(
-                      duration: const Duration(milliseconds: 200),
-                      curve: Curves.easeInOut,
-                    );
-                  },
-                  style: const ButtonStyle(
-                    padding: WidgetStatePropertyAll(
-                      EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    },
+                    style: const ButtonStyle(
+                      padding: WidgetStatePropertyAll(
+                        EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Criar tarefa',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
                     ),
                   ),
-                  child: currentPage == 0
-                      ? Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            const Text(
-                              "Vamos Começar",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                              ),
-                            ),
-                            Space.horizontal(4),
-                            const Icon(Icons.keyboard_arrow_right, size: 24),
-                          ],
-                        )
-                      : const Text(
-                          "Criar tarefa",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
                 ),
-              ),
               if (!keyboardOpen) ...[
                 Space.vertical(12),
                 SmoothPageIndicator(
