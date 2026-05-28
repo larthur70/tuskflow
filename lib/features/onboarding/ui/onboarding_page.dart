@@ -74,6 +74,7 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
     } catch (err) {
       debugPrint('erro no onboarding $err');
       if (FirebaseAuth.instance.currentUser != null) {
+        await NotificationService.instance.removeCurrentDeviceToken();
         await FirebaseAuth.instance.signOut();
         await setupController.reset();
       }

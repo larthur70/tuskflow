@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:app_settings/app_settings.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -5,6 +8,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tuskflow/features/analytics/services/analytics_service.dart';
 
 class NotificationService {
   NotificationService._();
@@ -12,6 +16,10 @@ class NotificationService {
 
   static const String notificationPromptHandledKey =
       'notification_prompt_handled';
+  static const String _installationIdKey = 'fcm_installation_id';
+  static const String _lastFcmTokenKey = 'last_fcm_token';
+  static const String _fcmTokensCollection = 'fcmTokens';
+  static const String _legacyFcmTokenDocId = '_legacy';
 
   final _messaging = FirebaseMessaging.instance;
   final _db = FirebaseFirestore.instance;
@@ -31,7 +39,7 @@ class NotificationService {
     });
   }
 
-  Future<void> initialize() async {
+  Future<void> initialize({required AnalyticsService analytics}) async {
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
     const DarwinInitializationSettings initializationSettingsIOS =
@@ -44,21 +52,27 @@ class NotificationService {
       android: initializationSettingsAndroid,
       iOS: initializationSettingsIOS,
     );
-    await _localNotifications.initialize(settings: initializationSettings);
+    await _localNotifications.initialize(
+      settings: initializationSettings,
+      onDidReceiveNotificationResponse: (_) {
+        unawaited(analytics.logNotificationClicked());
+      },
+    );
 
-    FirebaseMessaging.onMessage.listen((RemoteMessage message){
-      print('Got a message whilst in the foreground');
-      print('Message data: ${message.data}');
-
-      if(message.notification != null){
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      if (message.notification != null) {
         _showLocalNotification(message.notification!);
       }
     });
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print('A new onMessageOpenedApp event was published!');
-      // Handle navigation or actions here
+      unawaited(analytics.logNotificationClicked());
     });
+
+    final RemoteMessage? initialMessage = await _messaging.getInitialMessage();
+    if (initialMessage != null) {
+      await analytics.logNotificationClicked();
+    }
   }
 
   Future<void> _showLocalNotification(RemoteNotification notification) async {
@@ -141,26 +155,115 @@ class NotificationService {
           .timeout(_fcmTokenTimeout, onTimeout: () => null);
       if (currentToken == null) return;
       await _persistTokenIfChanged(userId, currentToken);
-    } catch (e) {
-      print("Erro ao salvar token: $e");
+    } catch (e, st) {
+      debugPrint('uploadFcmToken failed: $e\n$st');
+    }
+  }
+
+  /// Removes this device's token from the user document (call before sign-out).
+  Future<void> removeCurrentDeviceToken({String? userId}) async {
+    final String? uid = userId ?? FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    try {
+      final String installationId = await _getOrCreateInstallationId();
+      await _db
+          .collection('users')
+          .doc(uid)
+          .collection(_fcmTokensCollection)
+          .doc(installationId)
+          .delete();
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_lastFcmTokenKey);
+    } catch (e, st) {
+      debugPrint('removeCurrentDeviceToken failed: $e\n$st');
     }
   }
 
   Future<void> _persistTokenIfChanged(String userId, String currentToken) async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? lastSavedToken = prefs.getString('last_fcm_token');
+    final String installationId = await _getOrCreateInstallationId();
+    final DocumentReference<Map<String, dynamic>> tokenDocRef = _db
+        .collection('users')
+        .doc(userId)
+        .collection(_fcmTokensCollection)
+        .doc(installationId);
 
-    if (currentToken == lastSavedToken) {
-      print("Token não mudou. Escrita no Firestore poupada.");
-      return;
+    final DocumentSnapshot<Map<String, dynamic>> tokenDoc = await tokenDocRef.get();
+    if (tokenDoc.exists) {
+      final String? storedToken = tokenDoc.data()?['token'] as String?;
+      if (storedToken == currentToken) {
+        await _migrateLegacyFcmTokenIfNeeded(userId);
+        final prefs = await SharedPreferences.getInstance();
+        if (prefs.getString(_lastFcmTokenKey) != currentToken) {
+          await prefs.setString(_lastFcmTokenKey, currentToken);
+        }
+        return;
+      }
     }
 
-    await _db.collection('users').doc(userId).set(
-      {'fcmToken': currentToken},
-      SetOptions(merge: true),
-    );
+    await _migrateLegacyFcmTokenIfNeeded(userId);
 
-    await prefs.setString('last_fcm_token', currentToken);
-    print("Token FCM atualizado no Firestore.");
+    await tokenDocRef.set({
+      'token': currentToken,
+      'platform': _platformLabel(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_lastFcmTokenKey, currentToken);
+    debugPrint('FCM token saved for installation $installationId');
+  }
+
+  Future<void> _migrateLegacyFcmTokenIfNeeded(String userId) async {
+    final DocumentReference<Map<String, dynamic>> userRef =
+        _db.collection('users').doc(userId);
+    final DocumentSnapshot<Map<String, dynamic>> userDoc = await userRef.get();
+    final String? legacyToken = userDoc.data()?['fcmToken'] as String?;
+    if (legacyToken == null || legacyToken.isEmpty) return;
+
+    await userRef.collection(_fcmTokensCollection).doc(_legacyFcmTokenDocId).set({
+      'token': legacyToken,
+      'platform': 'unknown',
+      'updatedAt': FieldValue.serverTimestamp(),
+      'migratedFromLegacy': true,
+    }, SetOptions(merge: true));
+
+    await userRef.update({'fcmToken': FieldValue.delete()});
+  }
+
+  Future<String> _getOrCreateInstallationId() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? existing = prefs.getString(_installationIdKey);
+    if (existing != null && existing.isNotEmpty) {
+      return existing;
+    }
+
+    final String installationId = _generateInstallationId();
+    await prefs.setString(_installationIdKey, installationId);
+    return installationId;
+  }
+
+  static String _generateInstallationId() {
+    final Random random = Random.secure();
+    final List<int> bytes = List<int>.generate(16, (_) => random.nextInt(256));
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+
+    String hex(int value) => value.toRadixString(16).padLeft(2, '0');
+    final String b = bytes.map(hex).join();
+    return '${b.substring(0, 8)}-${b.substring(8, 12)}-'
+        '${b.substring(12, 16)}-${b.substring(16, 20)}-${b.substring(20)}';
+  }
+
+  static String _platformLabel() {
+    return switch (defaultTargetPlatform) {
+      TargetPlatform.android => 'android',
+      TargetPlatform.iOS => 'ios',
+      TargetPlatform.macOS => 'macos',
+      TargetPlatform.windows => 'windows',
+      TargetPlatform.linux => 'linux',
+      TargetPlatform.fuchsia => 'fuchsia',
+    };
   }
 }

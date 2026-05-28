@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tuskflow/features/auth/services/social_sign_in_flow.dart';
+import 'package:tuskflow/features/notifications/notification_service.dart';
 import 'package:tuskflow/features/onboarding/controllers/onboarding_setup_controller.dart';
 import 'package:tuskflow/features/tasks/ui/widgets/my_filled_button.dart';
 import 'package:tuskflow/utils/space.dart';
@@ -41,6 +42,7 @@ class _SocialSignInButtonsState extends State<SocialSignInButtons> {
   Future<void> _revertOnboardingLoginOnFailure() async {
     if (!widget.completeOnboardingSetup) return;
     if (FirebaseAuth.instance.currentUser == null) return;
+    await NotificationService.instance.removeCurrentDeviceToken();
     await FirebaseAuth.instance.signOut();
     if (!mounted) return;
     await context.read<OnboardingSetupController>().reset();

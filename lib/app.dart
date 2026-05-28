@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:tuskflow/core/services/auth_service.dart';
 import 'package:tuskflow/core/services/user_service.dart';
 import 'package:tuskflow/features/analytics/services/analytics_service.dart';
+import 'package:tuskflow/features/analytics/widgets/app_lifecycle_analytics.dart';
 import 'package:tuskflow/features/auth/auth_wrapper.dart';
 import 'package:tuskflow/features/onboarding/controllers/onboarding_controller.dart';
 import 'package:tuskflow/features/onboarding/controllers/onboarding_setup_controller.dart';
@@ -40,7 +41,7 @@ class App extends StatelessWidget {
   static bool get _isAndroid => defaultTargetPlatform == TargetPlatform.android;
 
   static ThemeData _appTheme() {
-    final primaryColor = _isAndroid ? primaryBlue : Colors.blue;
+    final primaryColor = Colors.blue;
     return ThemeData(
       textTheme: GoogleFonts.plusJakartaSansTextTheme(),
       colorScheme: ColorScheme(
@@ -87,7 +88,8 @@ class App extends StatelessWidget {
         return GlobalLoaderOverlay(
           overlayWidgetBuilder:
               _isAndroid ? _androidLoaderOverlay : null,
-          child: MaterialApp(
+          child: AppLifecycleAnalytics(
+            child: MaterialApp(
             debugShowCheckedModeBanner: false,
             theme: _appTheme(),
             onGenerateRoute: (settings){
@@ -114,6 +116,7 @@ class App extends StatelessWidget {
               
               "/succes_page":(context)=> SessionEndPage()
               },
+            ),
           ),
         );
       }

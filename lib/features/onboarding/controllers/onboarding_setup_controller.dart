@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:tuskflow/features/notifications/notification_service.dart';
 import 'package:tuskflow/features/onboarding/services/onboarding_setup_service.dart';
 
 class OnboardingSetupController extends ChangeNotifier {
@@ -41,6 +42,7 @@ class OnboardingSetupController extends ChangeNotifier {
         debugPrint(
           'Onboarding setup incomplete — signing out to restart onboarding.',
         );
+        await NotificationService.instance.removeCurrentDeviceToken();
         await FirebaseAuth.instance.signOut();
         await _service.clearSetupComplete();
         _complete = false;

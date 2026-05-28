@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:tuskflow/core/services/user_service.dart';
+import 'package:tuskflow/features/notifications/notification_service.dart';
 
 class AuthService {
   AuthService(this._userService);
@@ -34,6 +35,7 @@ class AuthService {
 
   Future<void> logOut() async {
     try {
+      await NotificationService.instance.removeCurrentDeviceToken();
       await auth.signOut();
       await GoogleSignIn.instance.signOut();
       debugPrint('logou feito!');

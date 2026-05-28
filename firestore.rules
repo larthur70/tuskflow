@@ -144,6 +144,24 @@ service cloud.firestore {
         && data.createdAt is timestamp;
     }
 
+    // --- FCM token (one doc per device installation) ---
+
+    function fcmTokenAllowedKeys() {
+      return ['token', 'platform', 'updatedAt', 'migratedFromLegacy'];
+    }
+
+    function fcmTokenFieldTypesOk(data) {
+      return data.keys().hasOnly(fcmTokenAllowedKeys())
+        && isNonEmptyString(data.token, 4096)
+        && isNonEmptyString(data.platform, 32)
+        && data.updatedAt is timestamp
+        && (!('migratedFromLegacy' in data) || data.migratedFromLegacy is bool);
+    }
+
+    function isValidFcmTokenWrite() {
+      return fcmTokenFieldTypesOk(request.resource.data);
+    }
+
     // --- Matches ---
 
     match /users/{userId} {
@@ -167,6 +185,12 @@ service cloud.firestore {
         allow get, list: if isOwner(userId);
         allow create: if isOwner(userId) && isValidSessionCreate();
         allow update, delete: if false;
+      }
+
+      match /fcmTokens/{installationId} {
+        allow get, list: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidFcmTokenWrite();
+        allow delete: if isOwner(userId);
       }
     }
   }

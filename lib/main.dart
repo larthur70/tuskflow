@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:tuskflow/app.dart';
+import 'package:tuskflow/features/analytics/services/analytics_service.dart';
 import 'package:tuskflow/features/notifications/notification_service.dart';
 import 'package:tuskflow/firebase_options.dart';
 
@@ -25,7 +26,8 @@ void main() async {
   }
 
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  await NotificationService.instance.initialize();
+  final analytics = AnalyticsService();
+  await NotificationService.instance.initialize(analytics: analytics);
   NotificationService.instance.registerTokenRefreshHandler();
 
   runApp(const App());
