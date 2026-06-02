@@ -1,82 +1,182 @@
 [
-    {
-      "title": "Dá um sossego pra sua cabeça 🧠",
-      "body": "Ficar pensando em {task} cansa mais do que fazer. Abre o app e resolve só oecinho inicial, rapidinho."
-    },
-    {
-      "title": "Bora tirar isso da frente? 🐘",
-      "body": "Isso tá rodando no fundo da sua mente e ocupando espaço. Entra em {task} agora, só pra dar o primeiro play."
-    },
-    {
-      "title": "Sem pressão, de verdade ✌️",
-      "body": "A gente trava quando a tarefa parece gigante. Esquece o resto e mexe só um pouquinho em {task} agora."
-    },
-    {
-      "title": "Ei, é o Tusk 👀",
-      "body": "A ansiedade de deixar pra depois é pior que a tarefa. Dá um pulo em {task} só por 2 minutos e vê o que acontece."
-    },
-    {
-      "title": "Aquela pendência chata... 🙄",
-      "body": "Sabe {task}? Ela não vai sumir sozinha. Abre o projeto agora e faz o mínimo necessário pra se sentir leve."
-    },
-    {
-      "title": "Ocupando espaço mental? ☁️",
-      "body": "Parece que {task} ainda tá te cutucando. Vamos só dar uma olhada nisso agora e tirar o peso das costas?"
-    },
-    {
-      "title": "Só um empurrãozinho 🚀",
-      "body": "A parte mais difícil é o começo. Entra em {task} agora, mexe um pouco e depois você decide se continua."
-    },
-    {
-      "title": "Prometo que é rápido ⏱️",
-      "body": "Sua mente vai te agradecer se você começar {task} agora. Abre aí e faz só a primeira linha."
-    },
-    {
-      "title": "Isso tá acumulando aí... 📦",
-      "body": "Deixar {task} pra depois só aumenta a bola de neve. Vamos só dar o primeiro passo agora, sem compromisso?"
-    },
-    {
-      "title": "Vencendo a inércia ⚡",
-      "body": "A preguiça mente pra gente. {task} é mais simples do que parece. Entra lá e resolve um detalhe agora."
-    },
-    {
-      "title": "Tá sentindo o peso? 🎒",
-      "body": "Adiar {task} é como carregar uma mochila cheia de pedras o dia todo. Vamos tirar uma pedra agora? Só abre o arquivo."
-    },
-    {
-      "title": "Só um rabisco ✍️",
-      "body": "Às vezes a gente trava buscando a perfeição. Entra em {task} e faz qualquer coisa, mesmo que seja 'errado'. Só pra começar."
-    },
-    {
-      "title": "Ocupando RAM mental... 💾",
-      "body": "Sua mente tá tentando não esquecer de {task} e isso gasta energia. Descarrega isso agora, mexe só um pouquinho lá."
-    },
-    {
-      "title": "O Tusk te entende 🤝",
-      "body": "Eu sei, começar é a pior parte. Mas prometo que {task} fica mais leve depois de 2 minutos. Bora dar o play?"
-    },
-    {
-      "title": "Dá uma chance pro seu 'eu' de amanhã 🌅",
-      "body": "Faz um favor pra você mesmo: adianta só o básico de {task} agora. Amanhã você vai se agradecer por ter começado."
-    },
-    {
-      "title": "Isso ainda tá por aqui? 🧐",
-      "body": "{task} tá te encarando faz tempo. Não deixa ela ganhar. Abre agora e faz só o que for mais fácil primeiro."
-    },
-    {
-      "title": "Menos conversa, mais ação? ⚡",
-      "body": "A gente já pensou demais sobre {task}. Vamos só entrar no fluxo? Dois minutinhos e a gente vê no que dá."
-    },
-    {
-      "title": "Aquela satisfação de dar o check ✅",
-      "body": "Imagina a sensação de riscar {task} da lista. Chega mais perto disso: mexe só no comecinho agora."
-    },
-    {
-      "title": "Ei, sem cobrança exagerada 🎈",
-      "body": "Ninguém tá pedindo pra terminar tudo. Só entra em {task} e faz a parte que você já sabe como fazer. Só isso."
-    },
-    {
-      "title": "Sua lista tá gritando? 📣",
-      "body": "{task} é o que tá mais te incomodando, né? Encara ela por 5 minutos agora e recupera seu foco."
-    }
+  {
+    "title": "Dá um sossego pra sua cabeça 🧠",
+    "body": "Ficar pensando em {task} costuma ser mais cansativo do que dedicar 5 minutos a ela. Resolve um pedacinho agora e fica mais leve."
+  },
+  {
+    "title": "Só 5 minutos ⏱️",
+    "body": "Você já gastou mais tempo pensando em {task} do que levaria para avançar um pouco nela."
+  },
+  {
+    "title": "A preocupação cobra juros 📈",
+    "body": "Quanto mais tempo {task} espera, mais espaço ela ocupa na sua mente. Cinco minutos agora podem mudar isso."
+  },
+  {
+    "title": "Menos peso nas costas 🎒",
+    "body": "Você não precisa terminar {task} hoje. Só diminuir um pouco o tamanho dela já ajuda."
+  },
+  {
+    "title": "O Tusk passando pra lembrar 🐘",
+    "body": "{task} continua aí. A boa notícia? Cinco minutos ainda são suficientes para fazer progresso."
+  },
+  {
+    "title": "Seu eu de amanhã agradece 🌅",
+    "body": "Um pequeno avanço em {task} hoje vale mais do que uma grande intenção amanhã."
+  },
+  {
+    "title": "Isso não vai embora sozinho 👀",
+    "body": "{task} continua ocupando espaço na sua cabeça. Que tal dedicar 5 minutos e aliviar isso?"
+  },
+  {
+    "title": "Mais simples do que parece ✨",
+    "body": "Muitas vezes o difícil é carregar a tarefa na mente. Fazer {task} por 5 minutos costuma ser mais fácil."
+  },
+  {
+    "title": "Uma preocupação a menos ☁️",
+    "body": "Imagine terminar o dia sabendo que {task} avançou um pouco. Vale 5 minutos?"
+  },
+  {
+    "title": "Pequenos avanços contam 📍",
+    "body": "Você não precisa resolver tudo. Só mover {task} alguns passos para frente."
+  },
+  {
+    "title": "Libera espaço mental 💾",
+    "body": "Sua mente continua lembrando de {task}. Cinco minutos agora podem liberar energia para o resto do dia."
+  },
+  {
+    "title": "Amanhã fica mais fácil 🚀",
+    "body": "Tudo que você fizer em {task} hoje é algo que não precisará carregar amanhã."
+  },
+  {
+    "title": "Só um pouquinho 🤏",
+    "body": "Cinco minutos parecem pouco. Mas são suficientes para deixar {task} menos assustadora."
+  },
+  {
+    "title": "Não deixe acumular 📦",
+    "body": "As tarefas raramente ficam menores esperando. Mas cinco minutos agora podem impedir que cresçam."
+  },
+  {
+    "title": "Menos ansiedade, mais clareza 🌊",
+    "body": "Um pequeno avanço em {task} costuma trazer mais tranquilidade do que continuar adiando."
+  },
+  {
+    "title": "Resolve um pedaço 🧩",
+    "body": "Você não precisa resolver tudo. Só atacar uma pequena parte de {task} já vale a pena."
+  },
+  {
+    "title": "Cinco minutos passam rápido ⚡",
+    "body": "A sensação de ter avançado em {task} costuma durar muito mais."
+  },
+  {
+    "title": "Tá ocupando espaço demais 🤔",
+    "body": "Se {task} continua voltando à sua cabeça, talvez seja um sinal de que merece 5 minutos."
+  },
+  {
+    "title": "Menos para depois 📉",
+    "body": "Cada minuto dedicado a {task} agora é um minuto a menos de preocupação mais tarde."
+  },
+  {
+    "title": "Uma escolha simples ✅",
+    "body": "Você pode continuar pensando em {task} ou dedicar 5 minutos a ela. A segunda opção costuma ser mais leve."
+  },
+  {
+    "title": "5 minutos é menos que um vídeo curto 📱",
+    "body": "Sério, você gasta mais tempo pensando em {task} do que vai gastar fazendo agora. Abre o app e vai."
+  },
+  {
+    "title": "Menos de 300 segundos ⏱️",
+    "body": "É tudo que {task} precisa de você agora. 5 minutos e sua cabeça já fica mais leve."
+  },
+  {
+    "title": "Sua mente não vai descansar enquanto {task} estiver pendente 🧠",
+    "body": "5 minutinhos agora valem horas de paz depois. Abre o TuskFlow e tira esse peso."
+  },
+  {
+    "title": "Deixar pra depois dói mais do que fazer 😮‍💨",
+    "body": "{task} vai continuar te cutucando até você mexer nela. 5 minutos agora e você respira melhor."
+  },
+  {
+    "title": "A preocupação cresce, a tarefa não some 📦",
+    "body": "Cada hora que passa, {task} pesa mais. 5 minutos agora é o antídoto."
+  },
+  {
+    "title": "5 minutos cabe em qualquer brecha ⚡",
+    "body": "Entre uma coisa e outra, você tem tempo pra {task}. É rápido, é leve, e depois você vai se sentir melhor."
+  },
+  {
+    "title": "A ansiedade de adiar é pior que a tarefa 🎒",
+    "body": "{task} não é o problema. Ficar pensando nela sem fazer nada é. 5 minutos resolve isso agora."
+  },
+  {
+    "title": "Você consegue em 5 minutos o que sua cabeça exagerou por horas 💡",
+    "body": "{task} parece maior do que é. Abre o app e descobre isso na prática."
+  },
+  {
+    "title": "Quanto mais tarde, mais difícil parece 🌙",
+    "body": "Agora {task} ainda é simples. Deixa pra mais tarde e ela vira um monstro. 5 minutos agora, sério."
+  },
+  {
+    "title": "Seu cérebro vai te agradecer 🙏",
+    "body": "Parar de carregar {task} na cabeça começa com 5 minutos agora. É pouco demais pra adiar."
+  },
+  {
+    "title": "5 minutos é menos que o intervalo de um episódio ☕",
+    "body": "Você tem tempo pra {task} agora. E depois disso sua cabeça fica livre de verdade."
+  },
+  {
+    "title": "Adiar não descansa, cansa 😴",
+    "body": "Sua mente continua trabalhando em {task} mesmo quando você finge que não. 5 minutos agora e ela para."
+  },
+  {
+    "title": "O peso que você sente agora só aumenta depois ⚖️",
+    "body": "{task} não vai ficar mais fácil esperando. Mas 5 minutos agora fazem ela parecer menor."
+  },
+  {
+    "title": "Tusk lembra de tudo 🐘",
+    "body": "{task} ainda está aqui. 5 minutos agora é tudo que você precisa pra sair desse loop."
+  },
+  {
+    "title": "Preocupação zero custa 5 minutos 🧘",
+    "body": "É a troca mais justa que existe. Mexe em {task} agora e descansa de verdade depois."
+  },
+  {
+    "title": "Não precisa terminar. Só precisa ir 🚶",
+    "body": "5 minutos em {task} agora já muda como você se sente pelo resto do dia."
+  },
+  {
+    "title": "Quanto tempo você já gastou pensando em {task}? 🤔",
+    "body": "Aposto que mais de 5 minutos. Então já dava pra ter feito. Abre o app agora."
+  },
+  {
+    "title": "A versão de você daqui a pouco agradece 🌅",
+    "body": "5 minutos em {task} agora e você sai daqui mais leve. Vale demais."
+  },
+  {
+    "title": "Nada de cobrança, só 5 minutos ✌️",
+    "body": "Sem pressão de terminar, sem meta enorme. Só você e {task} por 5 minutinhos agora."
+  },
+  {
+    "title": "É pouco demais pra adiar de novo ⏳",
+    "body": "5 minutos em {task} agora. Isso é tudo. Sua cabeça vai parar de rodar com isso."
+  },
+  {
+    "title": "Sabe aquela sensação de dever cumprido? 😌",
+    "body": "Ela começa com 5 minutos em {task} agora. Não depois. Agora."
+  },
+  {
+    "title": "Deixar pra amanhã virou deixar pra nunca? 📅",
+    "body": "5 minutos em {task} hoje quebra esse ciclo. É rápido e você sabe disso."
+  },
+  {
+    "title": "Sua cabeça tá cheia por causa de {task} 🌀",
+    "body": "E vai continuar assim até você mexer. 5 minutos é o preço da leveza."
+  },
+  {
+    "title": "Menos de 1% do seu dia 📊",
+    "body": "5 minutos em {task} é isso. Uma fração minúscula que muda como você se sente no resto."
+  },
+  {
+    "title": "O Tusk não esquece, mas você pode descansar 🐘",
+    "body": "Deixa {task} com a gente por 5 minutos agora. Depois você respira fundo de verdade."
+  }
 ]
