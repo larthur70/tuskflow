@@ -32,10 +32,6 @@
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "lastTimerAt",
-          "order": "ASCENDING"
-        },
-        {
           "fieldPath": "__name__",
           "order": "ASCENDING"
         }

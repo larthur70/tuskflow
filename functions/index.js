@@ -1,8 +1,12 @@
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { logger } = require("firebase-functions");
 const admin = require("firebase-admin");
-const messages = require('./notification_messages.json');
+const messages = require("./notification_messages.json");
 const moment = require("moment-timezone");
+
+const TIMEZONE = "America/Sao_Paulo";
+const MILESTONE_DAYS = [0, 1, 3, 5];
+const URGENCY_ORDER = { desespero: 0, panico: 1, preocupado: 2, calmo: 3 };
 
 if (admin.apps.length === 0) {
   admin.initializeApp({
@@ -10,20 +14,70 @@ if (admin.apps.length === 0) {
   });
 }
 
-function getRandomMessage(taskTitle) {
-  const random = messages[Math.floor(Math.random() * messages.length)];
+function daysUntilDue(dueDateTs, todayStart) {
+  const dueDay = moment(dueDateTs.toDate()).tz(TIMEZONE).startOf("day");
+  return dueDay.diff(todayStart, "days");
+}
 
-  return {
-    title: random.title,
-    body: random.body.replace("{task}", taskTitle)
+function tierForDaysUntil(daysUntil) {
+  switch (daysUntil) {
+    case 5:
+      return "calmo";
+    case 3:
+      return "preocupado";
+    case 1:
+      return "panico";
+    case 0:
+      return "desespero";
+    default:
+      return null;
   }
 }
 
-function buildPushPayload(randomMessage, taskDocId) {
+function getMessageForTask(taskTitle, tier) {
+  const template = messages[tier];
+  return {
+    title: template.title,
+    body: template.body.replace("{task}", taskTitle),
+  };
+}
+
+/**
+ * Picks the most urgent task at a notification milestone (0 > 1 > 3 > 5 days).
+ * @returns {{ doc: FirebaseFirestore.QueryDocumentSnapshot, tier: string } | null}
+ */
+function pickTaskForNotification(taskDocs, todayStart) {
+  let best = null;
+
+  for (const doc of taskDocs) {
+    const task = doc.data();
+    const dueDate = task.dueDate;
+    if (!dueDate) continue;
+
+    const daysUntil = daysUntilDue(dueDate, todayStart);
+    if (!MILESTONE_DAYS.includes(daysUntil)) continue;
+
+    const tier = tierForDaysUntil(daysUntil);
+    if (!tier) continue;
+
+    if (
+      !best ||
+      URGENCY_ORDER[tier] < URGENCY_ORDER[best.tier] ||
+      (URGENCY_ORDER[tier] === URGENCY_ORDER[best.tier] &&
+        dueDate.toMillis() < best.doc.data().dueDate.toMillis())
+    ) {
+      best = { doc, tier };
+    }
+  }
+
+  return best;
+}
+
+function buildPushPayload(message, taskDocId) {
   return {
     notification: {
-      title: randomMessage.title,
-      body: randomMessage.body,
+      title: message.title,
+      body: message.body,
     },
 
     android: {
@@ -34,28 +88,28 @@ function buildPushPayload(randomMessage, taskDocId) {
         defaultVibrateTimings: true,
         defaultLightSettings: true,
         visibility: "public",
-      }
+      },
     },
 
     apns: {
       headers: {
-        "apns-priority": "10"
+        "apns-priority": "10",
       },
       payload: {
         aps: {
           sound: "default",
           contentAvailable: false,
           alert: {
-            title: randomMessage.title,
-            body: randomMessage.body
-          }
-        }
-      }
+            title: message.title,
+            body: message.body,
+          },
+        },
+      },
     },
 
     data: {
       taskId: taskDocId,
-    }
+    },
   };
 }
 
@@ -84,66 +138,61 @@ async function getFcmTokenEntries(userDocRef, userData) {
 }
 
 function isInvalidFcmTokenError(error) {
-  return error?.code === "messaging/registration-token-not-registered" ||
-    error?.code === "messaging/invalid-registration-token";
+  return (
+    error?.code === "messaging/registration-token-not-registered" ||
+    error?.code === "messaging/invalid-registration-token"
+  );
 }
 
 exports.tuskDailyReminder = onSchedule(
   {
     schedule: "0 * * * *",
-    timeZone: "America/Sao_Paulo",
+    timeZone: TIMEZONE,
   },
   async (event) => {
     const db = admin.firestore();
 
-    
-    const nowJS = moment().tz("America/Sao_Paulo");
+    const nowJS = moment().tz(TIMEZONE);
     const currentHour = nowJS.hour();
     logger.log("NOW", nowJS.toString());
     logger.log("HOUR", currentHour.toString());
 
-    // 23h atrás (margem de segurança pro scheduler)
-    const threshold = new Date(
-      nowJS.valueOf() - (24 * 60 * 60 * 1000)
-    );
-
-    const thresholdTS =
-      admin.firestore.Timestamp.fromDate(threshold);
-
     const todayStart = nowJS.clone().startOf("day");
-
     const todayStartTS = admin.firestore.Timestamp.fromDate(todayStart.toDate());
-    
+
+    const windowEnd = todayStart.clone().add(5, "days").endOf("day");
+    const windowEndTS = admin.firestore.Timestamp.fromDate(windowEnd.toDate());
+
     try {
       const userSnap = await db
         .collection("users")
-        .where("lastTimerAt", "<=", thresholdTS)
-        .where('habitHour','==',currentHour)
-        .where("lastNotificationSentAt", "<",todayStartTS)
+        .where("habitHour", "==", currentHour)
+        .where("lastNotificationSentAt", "<", todayStartTS)
         .get();
 
       for (const userDoc of userSnap.docs) {
         const userData = userDoc.data();
 
         const tokenEntries = await getFcmTokenEntries(userDoc.ref, userData);
-
         if (tokenEntries.length === 0) continue;
 
-        // pega tarefa pendente mais próxima
         const tasksSnap = await userDoc.ref
           .collection("tasks")
           .where("finished", "==", false)
+          .where("dueDate", ">=", todayStartTS)
+          .where("dueDate", "<=", windowEndTS)
           .orderBy("dueDate", "asc")
-          .limit(1)
           .get();
 
         if (tasksSnap.empty) continue;
 
-        const taskDoc = tasksSnap.docs[0];
-        const task = taskDoc.data();
+        const picked = pickTaskForNotification(tasksSnap.docs, todayStart);
+        if (!picked) continue;
 
-        const randomMessage = getRandomMessage(task.title);
-        const basePayload = buildPushPayload(randomMessage, taskDoc.id);
+        const taskDoc = picked.doc;
+        const task = taskDoc.data();
+        const pushMessage = getMessageForTask(task.title, picked.tier);
+        const basePayload = buildPushPayload(pushMessage, taskDoc.id);
 
         const messagesToSend = tokenEntries.map((entry) => ({
           ...basePayload,
@@ -187,19 +236,15 @@ exports.tuskDailyReminder = onSchedule(
 
           if (!anySuccess) continue;
 
-          // trava envio até amanhã
           await userDoc.ref.update({
             lastNotificationSentAt: admin.firestore.Timestamp.now(),
           });
 
           logger.log(
-            `Notificação enviada para ${userDoc.id} (${tokenEntries.length} dispositivo(s)) sobre a tarefa: ${task.title}`
+            `Notificação [${picked.tier}] enviada para ${userDoc.id} (${tokenEntries.length} dispositivo(s)) sobre a tarefa: ${task.title}`
           );
         } catch (e) {
-          logger.error(
-            `Erro ao enviar push para ${userDoc.id}`,
-            e
-          );
+          logger.error(`Erro ao enviar push para ${userDoc.id}`, e);
         }
       }
     } catch (err) {
