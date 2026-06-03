@@ -7,6 +7,8 @@ import 'package:tuskflow/core/utils/critical_operation_timeout.dart';
 /// Gates [HomePage] until Firestore onboarding writes finish (avoids auth racing ahead).
 class OnboardingSetupService {
   static const String _setupDoneKey = 'onboarding_setup_done';
+  static const String _pendingStartFiveMinutesTaskIdKey =
+      'pending_start_five_minutes_task_id';
 
   Future<bool> isSetupComplete() async {
     final prefs = await SharedPreferences.getInstance();
@@ -24,6 +26,26 @@ class OnboardingSetupService {
   Future<void> clearSetupComplete() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_setupDoneKey, false);
+    await clearPendingStartFiveMinutesTaskId();
+  }
+
+  Future<void> setPendingStartFiveMinutesTaskId(String taskId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_pendingStartFiveMinutesTaskIdKey, taskId);
+  }
+
+  Future<String?> takePendingStartFiveMinutesTaskId() async {
+    final prefs = await SharedPreferences.getInstance();
+    final taskId = prefs.getString(_pendingStartFiveMinutesTaskIdKey);
+    if (taskId != null) {
+      await prefs.remove(_pendingStartFiveMinutesTaskIdKey);
+    }
+    return taskId;
+  }
+
+  Future<void> clearPendingStartFiveMinutesTaskId() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_pendingStartFiveMinutesTaskIdKey);
   }
 
   /// Creates a minimal user profile when Auth exists but Firestore doc does not.
@@ -46,10 +68,11 @@ class OnboardingSetupService {
             SetOptions(merge: true),
           ),
         );
+        await markSetupComplete();
+        return true;
       }
 
-      await markSetupComplete();
-      return true;
+      return false;
     } catch (e, st) {
       debugPrint('ensureMinimalUserProfile failed: $e\n$st');
       return false;

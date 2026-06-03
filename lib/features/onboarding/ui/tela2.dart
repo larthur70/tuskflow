@@ -45,7 +45,7 @@ class _Tela2State extends State<Tela2> {
     final colorScheme = ColorScheme.of(context);
     final compact = MediaQuery.sizeOf(context).height < 700;
     final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
-    final titleSize = compact ? 26.0 : 32.0;
+    final titleSize = compact ? 22.0 : 26.0;
 
     return SingleChildScrollView(
       controller: _scrollController,
@@ -62,7 +62,7 @@ class _Tela2State extends State<Tela2> {
                 color: const Color(0xff9ed9ff),
               ),
               child: Icon(
-                Icons.hourglass_empty,
+                Icons.add_task,
                 color: colorScheme.secondary,
                 size: compact ? 32 : 40,
               ),
@@ -70,16 +70,16 @@ class _Tela2State extends State<Tela2> {
             Space.vertical(compact ? 12 : 16),
           ],
           Text(
-            "Qual tarefa você está enrolando?",
+            "Qual trabalho,prova ou tarefa está te preocupando?",
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: keyboardOpen ? 22 : titleSize,
+              fontSize: keyboardOpen ? 20 : titleSize,
             ),
           ),
           if (!keyboardOpen) ...[
             Space.vertical(compact ? 12 : 16),
             Text(
-              '"Crie sua primeira tarefa e começe por 5 minutos para quebrar a procrastinação"',
+              'Crie sua primeira tarefa e começe por 5 minutos para vencer a procrastinação',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,

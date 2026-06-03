@@ -9,10 +9,22 @@ class OnboardingSetupController extends ChangeNotifier {
   bool _complete = false;
   bool _initialized = false;
   bool _isResolving = false;
+  String? _pendingStartFiveMinutesTaskId;
+  bool _isExitingOnboarding = false;
 
   bool get isComplete => _complete;
   bool get isInitialized => _initialized;
   bool get isResolving => _isResolving;
+  bool get isExitingOnboarding => _isExitingOnboarding;
+
+  void beginOnboardingExit() {
+    _isExitingOnboarding = true;
+  }
+
+  void endOnboardingExit() {
+    _isExitingOnboarding = false;
+    notifyListeners();
+  }
 
   /// Checks setup flag / Firestore migration, then recovers or signs out — never hangs.
   Future<void> loadAndRecoverIfNeeded() async {
@@ -38,7 +50,9 @@ class OnboardingSetupController extends ChangeNotifier {
         // Another flow (e.g. social login) may have marked setup done while we ran.
         _complete = await _service.isSetupComplete();
       }
-      if (!_complete && FirebaseAuth.instance.currentUser != null) {
+      if (!_complete &&
+          !_isExitingOnboarding &&
+          FirebaseAuth.instance.currentUser != null) {
         debugPrint(
           'Onboarding setup incomplete — signing out to restart onboarding.',
         );
@@ -53,7 +67,18 @@ class OnboardingSetupController extends ChangeNotifier {
     }
   }
 
-  Future<void> markComplete() async {
+  Future<String?> consumePendingStartFiveMinutesTaskId() async {
+    final memoryId = _pendingStartFiveMinutesTaskId;
+    _pendingStartFiveMinutesTaskId = null;
+    final prefsId = await _service.takePendingStartFiveMinutesTaskId();
+    return memoryId ?? prefsId;
+  }
+
+  Future<void> markComplete({String? createdTaskId}) async {
+    if (createdTaskId != null) {
+      _pendingStartFiveMinutesTaskId = createdTaskId;
+      await _service.setPendingStartFiveMinutesTaskId(createdTaskId);
+    }
     await _service.markSetupComplete();
     _complete = true;
     _initialized = true;
@@ -63,6 +88,8 @@ class OnboardingSetupController extends ChangeNotifier {
   Future<void> reset() async {
     await _service.clearSetupComplete();
     _complete = false;
+    _pendingStartFiveMinutesTaskId = null;
+    _isExitingOnboarding = false;
     notifyListeners();
   }
 }

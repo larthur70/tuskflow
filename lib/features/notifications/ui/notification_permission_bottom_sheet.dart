@@ -31,7 +31,7 @@ Future<void> showNotificationPermissionBottomSheet(BuildContext context) {
               ),
               Space.vertical(20),
               Text(
-                'O Tusk funciona melhor com lembretes ativos.',
+                'Não seja pego de surpresa. 🐘',
                 textAlign: TextAlign.center,
                 style: Theme.of(sheetContext).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
@@ -39,7 +39,7 @@ Future<void> showNotificationPermissionBottomSheet(BuildContext context) {
               ),
               Space.vertical(8),
               Text(
-                'As notificações ajudam você a voltar antes da pressão aparecer. Elas são uma parte essencial da experiência do TuskFlow.',
+                'O Tusk avisa quando trabalhos, provas e tarefas precisam da sua atenção, antes que elas virem uma preocupação.',
                 textAlign: TextAlign.center,
                 style: Theme.of(sheetContext).textTheme.bodyMedium?.copyWith(
                       color: Colors.black54,

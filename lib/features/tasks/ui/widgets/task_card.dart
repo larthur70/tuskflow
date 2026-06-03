@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
+import 'package:tuskflow/features/analytics/services/analytics_service.dart';
 import 'package:tuskflow/features/tasks/models/task_model.dart';
 import 'package:tuskflow/features/tasks/services/firestore_task_service.dart';
 import 'package:tuskflow/features/tasks/ui/widgets/edit_task_popup.dart';
@@ -13,8 +16,14 @@ import 'package:tuskflow/utils/space.dart';
 class TaskCard extends StatefulWidget {
   final TaskModel task;
   final bool unique;
+  final VoidCallback? onTaskCompleted;
 
-  const TaskCard({super.key, required this.task, this.unique = false});
+  const TaskCard({
+    super.key,
+    required this.task,
+    this.unique = false,
+    this.onTaskCompleted,
+  });
 
   @override
   State<TaskCard> createState() => _TaskCardState();
@@ -108,6 +117,7 @@ class _TaskCardState extends State<TaskCard> {
                   });
                   if (direction == DismissDirection.startToEnd) {
                     bool undoComplete = false;
+                    widget.onTaskCompleted?.call();
                     isVisible = false;
                     await Future.delayed(Duration(milliseconds: 300));
                     messenger.clearSnackBars();
@@ -178,6 +188,11 @@ class _TaskCardState extends State<TaskCard> {
                     await Future.delayed(Duration(seconds: 3));
                     if(!undoComplete){
                       await firestoreTask.finishTask(widget.task.id);
+                      if (context.mounted) {
+                        unawaited(
+                          context.read<AnalyticsService>().logTaskCompleted(),
+                        );
+                      }
                     } else {
                       print('ação cancelada pelo user');
                     }

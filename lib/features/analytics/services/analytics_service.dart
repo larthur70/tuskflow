@@ -11,6 +11,9 @@ class AnalyticsService {
   Future<void> logTaskCreated() =>
       _safeLog(AnalyticsEvents.taskCreated);
 
+  Future<void> logTaskCompleted() =>
+      _safeLog(AnalyticsEvents.taskCompleted);
+
   Future<void> logTimer5MinStart() =>
       _safeLog(AnalyticsEvents.timer5MinStart);
 
@@ -31,6 +34,9 @@ class AnalyticsService {
 
   Future<void> logUserReturned() =>
       _safeLog(AnalyticsEvents.userReturned);
+
+  Future<void> logProgressScreenOpened() =>
+      _safeLog(AnalyticsEvents.progressScreenOpened);
 
   Future<void> _safeLog(String name, [Map<String, Object>? parameters]) async {
     try {

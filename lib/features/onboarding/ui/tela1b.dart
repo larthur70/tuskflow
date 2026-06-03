@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:tuskflow/features/sessions/ui/widgets/looping_asset_video.dart';
 import 'package:tuskflow/utils/space.dart';
 
-class Tela1 extends StatelessWidget {
-  const Tela1({super.key});
+class Tela1b extends StatelessWidget {
+  const Tela1b({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +48,7 @@ class Tela1 extends StatelessWidget {
             ),
             Space.vertical(sectionGap),
             Text(
-              'Pare de se preocupar com as coisas da faculdade!',
+              'Vamos usar a regra dos 5 minutos⏳',
               style: TextStyle(
                 fontSize: titleSize,
                 fontWeight: FontWeight.bold,
@@ -57,21 +57,11 @@ class Tela1 extends StatelessWidget {
             ),
             Space.vertical(compact ? 16 : 24),
             Text(
-              'Trabalhos, provas e tarefas causam ansiedade muito antes do prazo chegar.',
+              'Quando você começa uma tarefa por 5 minutos, a chance de pegar embalo e continuar é muito grande',
               style: TextStyle(
                 fontSize: bodySize,
                 fontWeight: FontWeight.bold,
                 color: Colors.grey.shade700,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            Space.vertical(compact ? 16 : 24),
-            Text(
-              'Eu sou o Tusk, e vou ajudar você a manter tudo sob controle🐘',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.grey.shade600,
-                fontSize: 14,
               ),
               textAlign: TextAlign.center,
             ),

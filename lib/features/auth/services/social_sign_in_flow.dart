@@ -21,11 +21,12 @@ bool userHasGoogleOrAppleLinked(User? user) {
 Future<void> completeOnboardingSetupAfterSocialLogin(
   OnboardingSetupController setupController,
 ) async {
+  final setupService = OnboardingSetupService();
   final bool ensured = await withOnboardingOperationTimeout(
-    OnboardingSetupService().ensureMinimalUserProfile(),
+    setupService.ensureMinimalUserProfile(),
   );
   if (!ensured) {
-    throw Exception('Não foi possível preparar sua conta. Tente novamente.');
+    await withOnboardingOperationTimeout(setupService.markSetupComplete());
   }
   await setupController.markComplete();
 
