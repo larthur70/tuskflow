@@ -13,7 +13,7 @@ class StartFiveMinutesPage extends StatelessWidget {
   final TaskModel task;
 
   static const String _tuskImagePath =
-      'assets/images/tusk_images/tusk_1.png';
+      'assets/images/tusk_images/tusk_estudando-Photoroom.png';
 
   @override
   Widget build(BuildContext context) {
