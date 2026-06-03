@@ -81,12 +81,16 @@ flutter_launcher_icons:
   remove_alpha_ios: true
 
 flutter_native_splash:
-  color: "#FFFFFF" # Cor de fundo da Splash
-  image: assets/images/tusk_images/tusk_1.png # Onde está o seu elefante azul
-  
-  
+  color: "#FFFFFF"
+  # Padded 960×960 asset — icon ~42% size so Android 12+ circle mask never crops it
+  image_android: assets/icon/icon_splash_android.png
+  image_ios: assets/images/tusk_images/tusk_1.png
+  android: true
+  ios: true
+  web: false
+
   android_12:
-    image: assets/images/tusk_images/tusk_1.png
+    image: assets/icon/icon_splash_android.png
     color: "#FFFFFF"
     icon_background_color: "#FFFFFF"
 
