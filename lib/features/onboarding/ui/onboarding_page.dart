@@ -11,6 +11,7 @@ import 'package:tuskflow/features/onboarding/controllers/onboarding_controller.d
 import 'package:tuskflow/features/onboarding/controllers/onboarding_setup_controller.dart';
 import 'package:tuskflow/features/auth/ui/login_page.dart';
 import 'package:tuskflow/features/onboarding/ui/tela1.dart';
+import 'package:tuskflow/features/onboarding/ui/tela1b.dart';
 import 'package:tuskflow/features/onboarding/ui/tela2.dart';
 import 'package:tuskflow/utils/space.dart';
 
@@ -58,14 +59,17 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
     if(allFlux && dueDate == null) return;
     
     overlay.show();
+    setupController.beginOnboardingExit();
     try {
-      await onboardingController.initializeUser(
+      final createdTaskId = await onboardingController.initializeUser(
         completedOnboarding: allFlux,
         title: title,
         dueDate: dueDate,
       );
 
-      await setupController.markComplete();
+      await setupController.markComplete(
+        createdTaskId: allFlux ? createdTaskId : null,
+      );
 
       final String? uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid != null) {
@@ -82,6 +86,7 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
         SnackBar(content: Text(criticalOperationErrorMessage(err))),
       );
     } finally {
+      setupController.endOnboardingExit();
       // Must hide even when unmounted: sign-in rebuilds AuthWrapper and
       // disposes this page while the GlobalLoaderOverlay is still visible.
       overlay.hide();
@@ -173,6 +178,42 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
     );
   }
 
+  Widget _buildContinueButton() {
+    final compactHeight = MediaQuery.sizeOf(context).height < 700;
+
+    return SizedBox(
+      width: double.infinity,
+      child: FilledButton(
+        onPressed: () {
+          _controller.nextPage(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeInOut,
+          );
+        },
+        style: const ButtonStyle(
+          padding: WidgetStatePropertyAll(
+            EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Continuar',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: compactHeight ? 16 : 18,
+              ),
+            ),
+            Space.horizontal(4),
+            const Icon(Icons.keyboard_arrow_right, size: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = ColorScheme.of(context);
@@ -207,6 +248,7 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                   controller: _controller,
                   children: [
                     const Tela1(),
+                    const Tela1b(),
                     Tela2(
                       formKey: formKey,
                       dateController: dateController,
@@ -220,6 +262,10 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
               ),
               if (currentPage == 0)
                 _buildPage0Actions(colorScheme)
+              else if (currentPage == 1) ...[
+                Space.vertical(32),
+                _buildContinueButton(),
+              ]
               else
                 SizedBox(
                   width: double.infinity,
@@ -247,7 +293,7 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                 Space.vertical(12),
                 SmoothPageIndicator(
                   controller: _controller,
-                  count: 2,
+                  count: 3,
                   effect: ExpandingDotsEffect(),
                 ),
                 const SizedBox(height: 8),

@@ -4,8 +4,9 @@ import 'package:provider/provider.dart';
 import 'package:tuskflow/core/utils/critical_operation_timeout.dart';
 import 'package:tuskflow/core/widgets/text_card.dart';
 import 'package:tuskflow/features/analytics/services/analytics_service.dart';
+import 'package:tuskflow/features/tasks/models/task_model.dart';
 import 'package:tuskflow/features/tasks/services/firestore_task_service.dart';
-
+import 'package:tuskflow/features/tasks/ui/start_five_minutes_page.dart';
 import 'package:tuskflow/features/tasks/ui/widgets/manual_creation.dart';
 import 'package:tuskflow/features/tasks/ui/widgets/my_button.dart';
 import 'package:tuskflow/utils/space.dart';
@@ -32,16 +33,26 @@ class _CreateTaskState extends State<CreateTask> {
     titleController.dispose();
   }
 
-  Future<void> createTask() async {
-    if (!formKey.currentState!.validate()) return;
+  Future<TaskModel?> _createTask() async {
+    if (!formKey.currentState!.validate()) return null;
     final taskService = context.read<FirestoreTaskService>();
     final analytics = context.read<AnalyticsService>();
     try {
-      await taskService.createTask(titleController.text, dueDate!);
-      if (!mounted) return;
+      final taskId =
+          await taskService.createTask(titleController.text, dueDate!);
+      if (!mounted) return null;
+      if (taskId == null) {
+        throw Exception('Não foi possível criar a tarefa.');
+      }
+      final task = await taskService.getTaskById(taskId);
+      if (!mounted) return null;
+      if (task == null) {
+        throw Exception('Tarefa criada, mas não foi possível carregá-la.');
+      }
       await analytics.logTaskCreated();
+      return task;
     } catch (err) {
-      if (!mounted) return;
+      if (!mounted) return null;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(criticalOperationErrorMessage(err))),
       );
@@ -104,11 +115,16 @@ class _CreateTaskState extends State<CreateTask> {
                   if(!validator) return;
                   final overlay = context.loaderOverlay;
                   overlay.show();
-                  try{
-                    await createTask();
+                  try {
+                    final task = await _createTask();
                     overlay.hide();
-                    if(context.mounted) Navigator.pop(context);
-                  } catch (err){
+                    if (!context.mounted || task == null) return;
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute<void>(
+                        builder: (_) => StartFiveMinutesPage(task: task),
+                      ),
+                    );
+                  } catch (err) {
                     overlay.hide();
                   }
                   

@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
+import 'package:tuskflow/features/analytics/services/analytics_service.dart';
 import 'package:tuskflow/features/tasks/models/task_model.dart';
 import 'package:tuskflow/features/tasks/services/firestore_task_service.dart';
 import 'package:tuskflow/features/tasks/ui/widgets/edit_task_popup.dart';
@@ -13,8 +16,14 @@ import 'package:tuskflow/utils/space.dart';
 class TaskCard extends StatefulWidget {
   final TaskModel task;
   final bool unique;
+  final VoidCallback? onTaskCompleted;
 
-  const TaskCard({super.key, required this.task, this.unique = false});
+  const TaskCard({
+    super.key,
+    required this.task,
+    this.unique = false,
+    this.onTaskCompleted,
+  });
 
   @override
   State<TaskCard> createState() => _TaskCardState();
@@ -108,6 +117,7 @@ class _TaskCardState extends State<TaskCard> {
                   });
                   if (direction == DismissDirection.startToEnd) {
                     bool undoComplete = false;
+                    widget.onTaskCompleted?.call();
                     isVisible = false;
                     await Future.delayed(Duration(milliseconds: 300));
                     messenger.clearSnackBars();
@@ -178,6 +188,11 @@ class _TaskCardState extends State<TaskCard> {
                     await Future.delayed(Duration(seconds: 3));
                     if(!undoComplete){
                       await firestoreTask.finishTask(widget.task.id);
+                      if (context.mounted) {
+                        unawaited(
+                          context.read<AnalyticsService>().logTaskCompleted(),
+                        );
+                      }
                     } else {
                       print('ação cancelada pelo user');
                     }
@@ -298,6 +313,28 @@ class _TaskCardState extends State<TaskCard> {
     );
   }
 
+  Widget _buildRemainingTimeBadge() {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: widget.task.statusColor.withAlpha(50),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(
+          color: widget.task.statusColor,
+          width: 2,
+        ),
+      ),
+      child: Text(
+        widget.task.remainingTimeText,
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
+          color: widget.task.statusColor,
+        ),
+      ),
+    );
+  }
+
   Widget _buildCardContent(ColorScheme colorScheme) {
     final compact = widget.unique && MediaQuery.sizeOf(context).height < 700;
     return isVisible == false ? SizedBox.shrink() :  
@@ -354,44 +391,45 @@ class _TaskCardState extends State<TaskCard> {
                     ? MainAxisAlignment.center
                     : MainAxisAlignment.start,
                 children: [
-                  Icon(Icons.calendar_month, size: 20),
+                  const Icon(Icons.calendar_month, size: 20),
                   Space.horizontal(8),
                   Text(
                     widget.unique
                         ? "VENCE EM: ${formatDate(widget.task.dueDate)}"
                         : formatDate(widget.task.dueDate),
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
-              Space.vertical(12),
+              if (widget.unique) ...[
+                Space.vertical(8),
+                _buildRemainingTimeBadge(),
+                Space.vertical(compact ? 8 : 12),
+              ] else
+                Space.vertical(12),
               if (widget.unique)
-                Column(
-                  children: [
-                    Space.vertical(compact ? 12 : 20),
-                    SizedBox(
-                      width: double.infinity,
-                      child: MyButton(
-                        onTap: () {
-                          Navigator.pushNamed(
-                            context,
-                            "/timer_page",
-                            arguments: TimerRouteArgs(task: widget.task),
-                          );
-                        },
-
-                        text: widget.task.initialized
-                            ? "+5 min🔥"
-                            : "Começar 5 min",
-
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 12,
-                        ),
-                        fontSize: 18,
-                      ),
+                SizedBox(
+                  width: double.infinity,
+                  child: MyButton(
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        "/timer_page",
+                        arguments: TimerRouteArgs(task: widget.task),
+                      );
+                    },
+                    text: widget.task.initialized
+                        ? "+5 min🔥"
+                        : "Começar 5 min",
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 12,
                     ),
-                  ],
+                    fontSize: 18,
+                  ),
                 )
               else
                 Row(
@@ -400,26 +438,7 @@ class _TaskCardState extends State<TaskCard> {
                       ? MainAxisAlignment.center
                       : MainAxisAlignment.spaceBetween,
                   children: [
-                    if (!widget.unique)
-                      Container(
-                        padding: EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: widget.task.statusColor.withAlpha(50),
-                          borderRadius: BorderRadius.circular(30),
-                          border: Border.all(
-                            color: widget.task.statusColor,
-                            width: 2
-                          )
-                        ),
-                        child: Text(
-                          widget.task.remainingTimeText,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                            color: widget.task.statusColor,
-                          ),
-                        ),
-                      ),
+                    if (!widget.unique) _buildRemainingTimeBadge(),
 
                     MyButton(
                       onTap: () {

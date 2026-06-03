@@ -110,6 +110,8 @@ class NotificationService {
     await prefs.setBool(notificationPromptHandledKey, true);
   }
 
+  Future<bool> areNotificationsEnabled() => _isNotificationPermissionGranted();
+
   Future<bool> _isNotificationPermissionGranted() async {
     if (defaultTargetPlatform == TargetPlatform.iOS ||
         defaultTargetPlatform == TargetPlatform.macOS) {

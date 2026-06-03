@@ -5,11 +5,11 @@ import 'package:tuskflow/core/utils/critical_operation_timeout.dart';
 class OnboardingController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  Future<void> initializeUser({
+  Future<String?> initializeUser({
     required bool completedOnboarding,
     String? title,
-    DateTime? dueDate
-  })async{
+    DateTime? dueDate,
+  }) async {
     final credential = await withOnboardingOperationTimeout(
       _auth.signInAnonymously(),
     );
@@ -29,7 +29,7 @@ class OnboardingController {
     if (!completedOnboarding) {
       batch.set(userRef, userData, SetOptions(merge: true));
       await withOnboardingOperationTimeout(batch.commit());
-      return;
+      return null;
     }
 
     if (title == null || dueDate == null) {
@@ -52,5 +52,6 @@ class OnboardingController {
     });
 
     await withOnboardingOperationTimeout(batch.commit());
+    return taskRef.id;
   }
 }

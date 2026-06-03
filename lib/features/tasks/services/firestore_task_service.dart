@@ -20,20 +20,18 @@ class FirestoreTaskService {
     }
   }
 
-  Future<void> createTask(
+  Future<String?> createTask(
     String title,
-    DateTime dueDate,
-    {
+    DateTime dueDate, {
     bool initialized = false,
-    
   }) async {
-    if (user == null) return;
+    if (user == null) return null;
 
     final taskRef = _firestore
         .collection('users')
         .doc(user!.uid)
         .collection('tasks');
-    await withCriticalOperationTimeout(
+    final docRef = await withCriticalOperationTimeout(
       taskRef.add({
         "title": title,
         "finished": false,
@@ -42,6 +40,7 @@ class FirestoreTaskService {
         "dueDate": Timestamp.fromDate(dueDate),
       }),
     );
+    return docRef.id;
   }
 
   Stream<List<TaskModel>> getTasks() {

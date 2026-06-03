@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:tuskflow/features/sessions/ui/widgets/looping_asset_video.dart';
 import 'package:tuskflow/utils/space.dart';
 
-class Tela1 extends StatelessWidget {
-  const Tela1({super.key});
+class Tela1b extends StatelessWidget {
+  const Tela1b({super.key});
+
+  static const String _tuskImagePath =
+      'assets/images/tusk_images/tusk_juiz_2.png';
 
   @override
   Widget build(BuildContext context) {
@@ -12,12 +14,12 @@ class Tela1 extends StatelessWidget {
     final compactWidth = size.width < 360;
     final compact = compactHeight || compactWidth;
 
-    final videoHeight = compactHeight
+    final imageHeight = compactHeight
         ? 180.0
         : compactWidth
             ? 200.0
             : 250.0;
-    final videoMaxWidth = size.width * (compact ? 0.78 : 0.82);
+    final imageMaxWidth = size.width * (compact ? 0.78 : 0.82);
     final titleSize = compact ? 22.0 : 26.0;
     final bodySize = compact ? 16.0 : 18.0;
     final sectionGap = compact ? 20.0 : 32.0;
@@ -31,7 +33,7 @@ class Tela1 extends StatelessWidget {
             Align(
               alignment: Alignment.center,
               child: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: videoMaxWidth),
+                constraints: BoxConstraints(maxWidth: imageMaxWidth),
                 child: Container(
                   width: double.infinity,
                   padding: EdgeInsets.all(compact ? 12 : 16),
@@ -39,16 +41,17 @@ class Tela1 extends StatelessWidget {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: LoopingAssetVideo(
-                    assetPath: 'assets/images/tusk_images/onboarding.mp4',
-                    height: videoHeight,
+                  child: Image.asset(
+                    _tuskImagePath,
+                    height: imageHeight,
+                    fit: BoxFit.contain,
                   ),
                 ),
               ),
             ),
             Space.vertical(sectionGap),
             Text(
-              'Pare de se preocupar com as coisas da faculdade!',
+              'Vamos usar a regra dos 5 minutos⏳',
               style: TextStyle(
                 fontSize: titleSize,
                 fontWeight: FontWeight.bold,
@@ -57,21 +60,11 @@ class Tela1 extends StatelessWidget {
             ),
             Space.vertical(compact ? 16 : 24),
             Text(
-              'Trabalhos, provas e tarefas causam ansiedade muito antes do prazo chegar.',
+              'Quando você começa uma tarefa por 5 minutos, a chance de pegar embalo e continuar é muito grande',
               style: TextStyle(
                 fontSize: bodySize,
                 fontWeight: FontWeight.bold,
                 color: Colors.grey.shade700,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            Space.vertical(compact ? 16 : 24),
-            Text(
-              'Eu sou o Tusk, e vou ajudar você a manter tudo sob controle🐘',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.grey.shade600,
-                fontSize: 14,
               ),
               textAlign: TextAlign.center,
             ),
