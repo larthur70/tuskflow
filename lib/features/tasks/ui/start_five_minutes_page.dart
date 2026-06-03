@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:tuskflow/features/analytics/services/analytics_service.dart';
 import 'package:tuskflow/features/sessions/ui/timer_route_args.dart';
 import 'package:tuskflow/features/tasks/models/task_model.dart';
 import 'package:tuskflow/features/tasks/ui/widgets/my_button.dart';
@@ -29,7 +33,12 @@ class StartFiveMinutesPage extends StatelessWidget {
         automaticallyImplyLeading: false,
         actions: [
           IconButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () {
+              unawaited(
+                context.read<AnalyticsService>().logStartFiveMinutesCloseTapped(),
+              );
+              Navigator.of(context).pop();
+            },
             icon: Icon(Icons.close, color: colorScheme.secondary),
           ),
         ],
@@ -59,7 +68,7 @@ class StartFiveMinutesPage extends StatelessWidget {
                       ),
                       Space.vertical(compact ? 12 : 16),
                       Text(
-                        'Começe ${task.title} por apenas 5 minutos. Provavelmente vai parecer menor depois disso.',
+                        'Começe ${task.title} por apenas 5 minutos, são menos tempo que você leva para tomar um banho. Bora!',
                         style: TextStyle(
                           fontSize: bodySize,
                           fontWeight: FontWeight.bold,
@@ -81,6 +90,11 @@ class StartFiveMinutesPage extends StatelessWidget {
                   vertical: compact ? 14 : 16,
                 ),
                 onTap: () {
+                  unawaited(
+                    context
+                        .read<AnalyticsService>()
+                        .logStartFiveMinutesStartTapped(),
+                  );
                   Navigator.pushReplacementNamed(
                     context,
                     '/timer_page',

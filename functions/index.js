@@ -34,20 +34,57 @@ function tierForDaysUntil(daysUntil) {
   }
 }
 
-function getMessageForTask(taskTitle, tier) {
-  const template = messages[tier];
+/**
+ * Formats 2–3 task titles for aggregated notifications.
+ * 2 tasks: "A e B"
+ * 3 tasks: "A, B e C"
+ */
+function formatTaskList(titles) {
+  if (titles.length <= 1) {
+    return titles[0] ?? "";
+  }
+  if (titles.length === 2) {
+    return `${titles[0]} e ${titles[1]}`;
+  }
+  return `${titles.slice(0, -1).join(", ")} e ${titles[titles.length - 1]}`;
+}
+
+function getMessageForTasks(taskEntries, tier) {
+  const tierMessages = messages[tier];
+  const count = taskEntries.length;
+
+  if (count === 1) {
+    const template = tierMessages.single;
+    return {
+      title: template.title,
+      body: template.body.replace("{task}", taskEntries[0].title),
+    };
+  }
+
+  if (count <= 3) {
+    const taskList = formatTaskList(taskEntries.map((entry) => entry.title));
+    const template = tierMessages["2_3_tasks"];
+    return {
+      title: template.title,
+      body: template.body.replace("{taskList}", taskList),
+    };
+  }
+
+  const template = tierMessages["4_plus_tasks"];
   return {
     title: template.title,
-    body: template.body.replace("{task}", taskTitle),
+    body: template.body.replace("{count}", String(count)),
   };
 }
 
 /**
- * Picks the most urgent task at a notification milestone (0 > 1 > 3 > 5 days).
- * @returns {{ doc: FirebaseFirestore.QueryDocumentSnapshot, tier: string } | null}
+ * Collects every task at a notification milestone today and picks the most
+ * urgent tier (0 > 1 > 3 > 5 days). All qualifying tasks are included in the
+ * aggregated message; tone follows the closest deadline.
+ * @returns {{ tier: string, tasks: Array<{ doc: FirebaseFirestore.QueryDocumentSnapshot, title: string }>, primaryTaskDoc: FirebaseFirestore.QueryDocumentSnapshot } | null}
  */
-function pickTaskForNotification(taskDocs, todayStart) {
-  let best = null;
+function collectTasksForNotification(taskDocs, todayStart) {
+  const qualifying = [];
 
   for (const doc of taskDocs) {
     const task = doc.data();
@@ -60,17 +97,22 @@ function pickTaskForNotification(taskDocs, todayStart) {
     const tier = tierForDaysUntil(daysUntil);
     if (!tier) continue;
 
-    if (
-      !best ||
-      URGENCY_ORDER[tier] < URGENCY_ORDER[best.tier] ||
-      (URGENCY_ORDER[tier] === URGENCY_ORDER[best.tier] &&
-        dueDate.toMillis() < best.doc.data().dueDate.toMillis())
-    ) {
-      best = { doc, tier };
-    }
+    qualifying.push({ doc, tier, title: task.title, dueDate });
   }
 
-  return best;
+  if (qualifying.length === 0) return null;
+
+  qualifying.sort((a, b) => {
+    const urgencyDiff = URGENCY_ORDER[a.tier] - URGENCY_ORDER[b.tier];
+    if (urgencyDiff !== 0) return urgencyDiff;
+    return a.dueDate.toMillis() - b.dueDate.toMillis();
+  });
+
+  return {
+    tier: qualifying[0].tier,
+    tasks: qualifying,
+    primaryTaskDoc: qualifying[0].doc,
+  };
 }
 
 function buildPushPayload(message, taskDocId) {
@@ -120,13 +162,27 @@ function buildPushPayload(message, taskDocId) {
 async function getFcmTokenEntries(userDocRef, userData) {
   const entries = [];
   const seen = new Set();
+  const duplicateRefsToDelete = [];
 
   const tokenSnap = await userDocRef.collection("fcmTokens").get();
   for (const doc of tokenSnap.docs) {
     const token = doc.data().token;
-    if (!token || seen.has(token)) continue;
+    if (!token) continue;
+
+    if (seen.has(token)) {
+      duplicateRefsToDelete.push(doc.ref);
+      continue;
+    }
+
     seen.add(token);
-    entries.push({ token, docRef: doc.ref, legacy: false });
+    entries.push({ token, docRef: doc.ref, legacy: doc.id === "_legacy" });
+  }
+
+  if (duplicateRefsToDelete.length > 0) {
+    await Promise.all(duplicateRefsToDelete.map((ref) => ref.delete()));
+    logger.log(
+      `Removidos ${duplicateRefsToDelete.length} doc(s) duplicado(s) de FCM para ${userDocRef.id}`
+    );
   }
 
   const legacyToken = userData.fcmToken;
@@ -186,13 +242,14 @@ exports.tuskDailyReminder = onSchedule(
 
         if (tasksSnap.empty) continue;
 
-        const picked = pickTaskForNotification(tasksSnap.docs, todayStart);
+        const picked = collectTasksForNotification(tasksSnap.docs, todayStart);
         if (!picked) continue;
 
-        const taskDoc = picked.doc;
-        const task = taskDoc.data();
-        const pushMessage = getMessageForTask(task.title, picked.tier);
-        const basePayload = buildPushPayload(pushMessage, taskDoc.id);
+        const pushMessage = getMessageForTasks(picked.tasks, picked.tier);
+        const basePayload = buildPushPayload(
+          pushMessage,
+          picked.primaryTaskDoc.id
+        );
 
         const messagesToSend = tokenEntries.map((entry) => ({
           ...basePayload,
@@ -207,9 +264,13 @@ exports.tuskDailyReminder = onSchedule(
           for (let i = 0; i < response.responses.length; i++) {
             const sendResponse = response.responses[i];
             const entry = tokenEntries[i];
+            const tokenSuffix = entry.token.slice(-8);
 
             if (sendResponse.success) {
               anySuccess = true;
+              logger.log(
+                `Push aceito pelo FCM para ${userDoc.id} (token ...${tokenSuffix}, messageId: ${sendResponse.messageId ?? "n/a"})`
+              );
               continue;
             }
 
@@ -240,8 +301,12 @@ exports.tuskDailyReminder = onSchedule(
             lastNotificationSentAt: admin.firestore.Timestamp.now(),
           });
 
+          const taskSummary =
+            picked.tasks.length === 1
+              ? picked.tasks[0].title
+              : `${picked.tasks.length} tarefas (${picked.tasks.map((t) => t.title).join(", ")})`;
           logger.log(
-            `Notificação [${picked.tier}] enviada para ${userDoc.id} (${tokenEntries.length} dispositivo(s)) sobre a tarefa: ${task.title}`
+            `Notificação [${picked.tier}] enviada para ${userDoc.id} (${tokenEntries.length} dispositivo(s)) sobre: ${taskSummary}`
           );
         } catch (e) {
           logger.error(`Erro ao enviar push para ${userDoc.id}`, e);

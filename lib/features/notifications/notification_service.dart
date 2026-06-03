@@ -20,6 +20,8 @@ class NotificationService {
   static const String _lastFcmTokenKey = 'last_fcm_token';
   static const String _fcmTokensCollection = 'fcmTokens';
   static const String _legacyFcmTokenDocId = '_legacy';
+  static const int _maxFcmTokensPerUser = 5;
+  static const Duration _staleFcmTokenAge = Duration(days: 30);
 
   final _messaging = FirebaseMessaging.instance;
   final _db = FirebaseFirestore.instance;
@@ -196,6 +198,7 @@ class NotificationService {
       final String? storedToken = tokenDoc.data()?['token'] as String?;
       if (storedToken == currentToken) {
         await _migrateLegacyFcmTokenIfNeeded(userId);
+        await _pruneStaleFcmTokens(userId, installationId);
         final prefs = await SharedPreferences.getInstance();
         if (prefs.getString(_lastFcmTokenKey) != currentToken) {
           await prefs.setString(_lastFcmTokenKey, currentToken);
@@ -211,6 +214,8 @@ class NotificationService {
       'platform': _platformLabel(),
       'updatedAt': FieldValue.serverTimestamp(),
     });
+
+    await _pruneStaleFcmTokens(userId, installationId);
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_lastFcmTokenKey, currentToken);
@@ -232,6 +237,90 @@ class NotificationService {
     }, SetOptions(merge: true));
 
     await userRef.update({'fcmToken': FieldValue.delete()});
+  }
+
+  /// Removes duplicate, legacy, stale, and excess FCM token docs for this user.
+  Future<void> _pruneStaleFcmTokens(
+    String userId,
+    String currentInstallationId,
+  ) async {
+    try {
+      final CollectionReference<Map<String, dynamic>> tokensRef = _db
+          .collection('users')
+          .doc(userId)
+          .collection(_fcmTokensCollection);
+      final QuerySnapshot<Map<String, dynamic>> snap = await tokensRef.get();
+
+      String? currentToken;
+      for (final QueryDocumentSnapshot<Map<String, dynamic>> doc in snap.docs) {
+        if (doc.id == currentInstallationId) {
+          currentToken = doc.data()['token'] as String?;
+          break;
+        }
+      }
+
+      final Set<DocumentReference<Map<String, dynamic>>> toDelete = {};
+      final DateTime staleCutoff =
+          DateTime.now().subtract(_staleFcmTokenAge);
+
+      for (final QueryDocumentSnapshot<Map<String, dynamic>> doc in snap.docs) {
+        if (doc.id == currentInstallationId) continue;
+
+        final Map<String, dynamic> data = doc.data();
+        final String? token = data['token'] as String?;
+
+        if (doc.id == _legacyFcmTokenDocId) {
+          toDelete.add(doc.reference);
+          continue;
+        }
+
+        if (currentToken != null && token == currentToken) {
+          toDelete.add(doc.reference);
+          continue;
+        }
+
+        final Timestamp? updatedAt = data['updatedAt'] as Timestamp?;
+        if (updatedAt == null || updatedAt.toDate().isBefore(staleCutoff)) {
+          toDelete.add(doc.reference);
+        }
+      }
+
+      final List<QueryDocumentSnapshot<Map<String, dynamic>>> remainingOthers =
+          snap.docs
+              .where(
+                (doc) =>
+                    doc.id != currentInstallationId &&
+                    !toDelete.contains(doc.reference),
+              )
+              .toList()
+            ..sort((a, b) {
+              final Timestamp? aTs = a.data()['updatedAt'] as Timestamp?;
+              final Timestamp? bTs = b.data()['updatedAt'] as Timestamp?;
+              if (aTs == null && bTs == null) return 0;
+              if (aTs == null) return 1;
+              if (bTs == null) return -1;
+              return bTs.compareTo(aTs);
+            });
+
+      const int maxOtherTokens = _maxFcmTokensPerUser - 1;
+      if (remainingOthers.length > maxOtherTokens) {
+        for (final QueryDocumentSnapshot<Map<String, dynamic>> doc
+            in remainingOthers.skip(maxOtherTokens)) {
+          toDelete.add(doc.reference);
+        }
+      }
+
+      if (toDelete.isEmpty) return;
+
+      final WriteBatch batch = _db.batch();
+      for (final DocumentReference<Map<String, dynamic>> ref in toDelete) {
+        batch.delete(ref);
+      }
+      await batch.commit();
+      debugPrint('Pruned ${toDelete.length} stale FCM token(s) for $userId');
+    } catch (e, st) {
+      debugPrint('_pruneStaleFcmTokens failed: $e\n$st');
+    }
   }
 
   Future<String> _getOrCreateInstallationId() async {

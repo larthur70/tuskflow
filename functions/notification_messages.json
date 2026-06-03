@@ -1,18 +1,58 @@
 {
   "calmo": {
-    "title": "Ei, lembrete tranquilo 🐘",
-    "body": "Faltam 5 dias pra {task}. Ainda dá tempo — 5 minutos hoje já ajudam."
+    "single": {
+      "title": "Ei, lembrete tranquilo 🐘",
+      "body": "Faltam 5 dias pra {task}. Ainda dá tempo — 5 minutos hoje já ajudam."
+    },
+    "2_3_tasks": {
+      "title": "🐘 Algumas tarefas merecem atenção",
+      "body": "{taskList} estão se aproximando. Um pouco de atenção agora pode trazer mais tranquilidade depois."
+    },
+    "4_plus_tasks": {
+      "title": "🐘 Algumas tarefas merecem atenção",
+      "body": "Você tem {count} tarefas que valem uma olhada. Melhor se organizar antes que elas acumulem."
+    }
   },
   "preocupado": {
-    "title": "Tusk tá de olho... 😟",
-    "body": "3 dias pra {task}. Bora dar uma olhada nisso agora?"
+    "single": {
+      "title": "Tusk tá de olho... 😟",
+      "body": "3 dias pra {task}. Bora dar uma olhada nisso agora?"
+    },
+    "2_3_tasks": {
+      "title": "📅 Vale acompanhar essas tarefas",
+      "body": "{taskList} estão chegando. Pode ser um bom momento para conferir como está tudo."
+    },
+    "4_plus_tasks": {
+      "title": "📅 Algumas tarefas estão chegando",
+      "body": "Você tem {count} tarefas que merecem atenção. Vale conferir seus prazos."
+    }
   },
   "panico": {
-    "title": "É amanhã! 😰",
-    "body": "{task} vence AMANHÃ. 5 minutos agora resolve muito."
+    "single": {
+      "title": "É amanhã! 😰",
+      "body": "{task} vence AMANHÃ. 5 minutos agora resolve muito."
+    },
+    "2_3_tasks": {
+      "title": "⏰ Hora de dar uma olhada nisso",
+      "body": "{taskList} estão ficando mais próximas. Uma delas vence amanhã!."
+    },
+    "4_plus_tasks": {
+      "title": "⏰ Isso precisa da sua atenção",
+      "body": "Você tem {count} tarefas se aproximando. Uma delas ja é amanhã!."
+    }
   },
   "desespero": {
-    "title": "É HOJE! 🆘",
-    "body": "{task} vence HOJE. Abre o app. AGORA."
+    "single": {
+      "title": "É HOJE! 🆘",
+      "body": "{task} vence HOJE. Vale dar uma olhada nisso agora."
+    },
+    "2_3_tasks": {
+      "title": "🚨 TA NA HORA!",
+      "body": "{taskList} merecem sua atenção hoje. Pelo menos uma delas vence hoje."
+    },
+    "4_plus_tasks": {
+      "title": "🚨 Tem coisa importante pra hoje",
+      "body": "Você tem {count} tarefas que merecem atenção. Pelo menos uma delas vence hoje."
+    }
   }
 }

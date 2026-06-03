@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:tuskflow/core/navigation/home_visit_refresh.dart';
 import 'package:tuskflow/features/notifications/notification_service.dart';
+import 'package:tuskflow/features/notifications/services/notification_banner_service.dart';
 import 'package:tuskflow/features/notifications/ui/notification_disabled_banner.dart';
 import 'package:tuskflow/features/notifications/ui/notification_permission_bottom_sheet.dart';
 import 'package:tuskflow/features/onboarding/controllers/onboarding_setup_controller.dart';
@@ -173,7 +175,16 @@ class _HomePageState extends State<HomePage> {
 
       body: Column(
         children: [
-          if (_selectedIndex == 0) const NotificationDisabledBanner(),
+          if (_selectedIndex == 0)
+            ValueListenableBuilder<int>(
+              valueListenable: HomeVisitRefresh.instance.token,
+              builder: (context, refreshToken, _) {
+                return NotificationDisabledBanner(
+                  placement: NotificationBannerPlacement.home,
+                  refreshToken: refreshToken,
+                );
+              },
+            ),
           Expanded(
             child: PageView(
               controller: _pageController,

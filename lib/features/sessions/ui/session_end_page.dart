@@ -128,6 +128,16 @@ class _SessionEndPageState extends State<SessionEndPage> {
             ),
           ),
         ),
+        Space.vertical(24),
+        Text(
+          'Tem mais alguma tarefa, prova ou trabalho ocupando espaço na sua cabeça?',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.grey.shade700,
+            height: 1.4,
+          ),
+        ),
         const SizedBox(height: 16),
       ],
     );

@@ -10,4 +10,8 @@ abstract final class AnalyticsEvents {
   static const String notificationClicked = 'notification_clicked';
   static const String userReturned = 'user_returned';
   static const String progressScreenOpened = 'progress_screen_opened';
+  static const String startFiveMinutesStartTapped =
+      'start_five_minutes_start_tapped';
+  static const String startFiveMinutesCloseTapped =
+      'start_five_minutes_close_tapped';
 }

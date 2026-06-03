@@ -5,7 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:tuskflow/core/models/user_model.dart';
 import 'package:tuskflow/core/services/auth_service.dart';
 import 'package:tuskflow/core/services/user_service.dart';
-import 'package:tuskflow/features/notifications/notification_service.dart';
+import 'package:tuskflow/features/notifications/services/notification_banner_service.dart';
+import 'package:tuskflow/features/notifications/ui/notification_disabled_banner.dart';
 import 'package:tuskflow/features/auth/services/social_sign_in_flow.dart';
 import 'package:tuskflow/features/auth/ui/widgets/social_sign_in_buttons.dart';
 import 'package:tuskflow/features/onboarding/controllers/onboarding_setup_controller.dart';
@@ -27,19 +28,6 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   bool _logoutLoading = false;
   UserModel? _firestoreUser;
-
-  Future<void> _openNotificationSettings(BuildContext context) async {
-    try {
-      await NotificationService.instance.openDeviceNotificationSettings();
-    } catch (e) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Não foi possível abrir os ajustes de notificação: $e'),
-        ),
-      );
-    }
-  }
 
   Future<void> _openSuggestionForm(BuildContext context) async {
     if (!await launchUrl(
@@ -208,62 +196,8 @@ class _ProfilePageState extends State<ProfilePage> {
                       Space.vertical(24),
                     ] else
                       Space.vertical(8),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Não lute sozinho contra a procrastinação 🔔',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: colorScheme.primary,
-                                ),
-                              ),
-                              Space.vertical(8),
-                              Text(
-                                'As notificações fazem parte do método do Tusk. Elas ajudam você a lembrar da tarefa no momento certo e facilitam começar antes da pressão chegar. Mantenha-as ativas para aproveitar a experiência completa.',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey.shade700,
-                                  height: 1.4,
-                                ),
-                              ),
-                              Space.vertical(16),
-                              SizedBox(
-                                width: double.infinity,
-                                child: OutlinedButton(
-                                  onPressed: () =>
-                                      _openNotificationSettings(context),
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: colorScheme.primary,
-                                    side: BorderSide(color: colorScheme.primary),
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 12,
-                                    ),
-                                  ),
-                                  child: const Text(
-                                    'Gerenciar notificações',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                    const NotificationDisabledBanner(
+                      placement: NotificationBannerPlacement.profile,
                     ),
                     Space.vertical(22),
                     SizedBox(

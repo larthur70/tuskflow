@@ -60,7 +60,7 @@ class Tela1b extends StatelessWidget {
             ),
             Space.vertical(compact ? 16 : 24),
             Text(
-              'Quando você começa uma tarefa por 5 minutos, a chance de pegar embalo e continuar é muito grande',
+              'A parte mais difícil costuma ser começar. Um compromisso de 5 minutos torna isso muito mais simples.',
               style: TextStyle(
                 fontSize: bodySize,
                 fontWeight: FontWeight.bold,

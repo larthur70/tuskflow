@@ -6,6 +6,8 @@ import 'package:tuskflow/core/services/auth_service.dart';
 import 'package:tuskflow/core/services/user_service.dart';
 import 'package:tuskflow/features/analytics/services/analytics_service.dart';
 import 'package:tuskflow/features/analytics/widgets/app_lifecycle_analytics.dart';
+import 'package:tuskflow/core/navigation/home_visit_navigator_observer.dart';
+import 'package:tuskflow/core/navigation/home_visit_refresh.dart';
 import 'package:tuskflow/features/auth/auth_wrapper.dart';
 import 'package:tuskflow/features/onboarding/controllers/onboarding_controller.dart';
 import 'package:tuskflow/features/onboarding/controllers/onboarding_setup_controller.dart';
@@ -24,6 +26,11 @@ import 'package:tuskflow/features/sessions/ui/timer_route_args.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
+
+  static final HomeVisitNavigatorObserver homeVisitNavigatorObserver =
+      HomeVisitNavigatorObserver(
+    onHomeVisitRecorded: HomeVisitRefresh.instance.notifyVisitRecorded,
+  );
 
   static const primaryBlue = Color(0xFF13B9FD);  // azul principal (Dart vibe)
   static const secondaryBlue = Color(0xFF0175C2);// azul claro vibrante
@@ -91,6 +98,7 @@ class App extends StatelessWidget {
           child: AppLifecycleAnalytics(
             child: MaterialApp(
             debugShowCheckedModeBanner: false,
+            navigatorObservers: [App.homeVisitNavigatorObserver],
             theme: _appTheme(),
             onGenerateRoute: (settings){
               if (settings.name == '/timer_page') {

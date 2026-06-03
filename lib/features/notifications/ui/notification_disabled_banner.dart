@@ -3,7 +3,14 @@ import 'package:tuskflow/features/notifications/notification_service.dart';
 import 'package:tuskflow/features/notifications/services/notification_banner_service.dart';
 
 class NotificationDisabledBanner extends StatefulWidget {
-  const NotificationDisabledBanner({super.key});
+  const NotificationDisabledBanner({
+    super.key,
+    required this.placement,
+    this.refreshToken = 0,
+  });
+
+  final NotificationBannerPlacement placement;
+  final int refreshToken;
 
   @override
   State<NotificationDisabledBanner> createState() =>
@@ -26,6 +33,14 @@ class _NotificationDisabledBannerState extends State<NotificationDisabledBanner>
   }
 
   @override
+  void didUpdateWidget(NotificationDisabledBanner oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.refreshToken != widget.refreshToken) {
+      _refreshVisibility();
+    }
+  }
+
+  @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -39,12 +54,8 @@ class _NotificationDisabledBannerState extends State<NotificationDisabledBanner>
   }
 
   Future<void> _refreshVisibility() async {
-    final cached = await _bannerService.getCachedNotificationsGranted();
-    if (cached == false && mounted) {
-      setState(() => _visible = true);
-    }
-
-    final shouldShow = await _bannerService.shouldShowBanner();
+    final shouldShow =
+        await _bannerService.shouldShowBanner(widget.placement);
     if (!mounted) return;
     setState(() => _visible = shouldShow);
   }
@@ -57,8 +68,12 @@ class _NotificationDisabledBannerState extends State<NotificationDisabledBanner>
   Widget build(BuildContext context) {
     if (!_visible) return const SizedBox.shrink();
 
+    final padding = widget.placement == NotificationBannerPlacement.home
+        ? const EdgeInsets.fromLTRB(16, 8, 16, 0)
+        : EdgeInsets.zero;
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      padding: padding,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(

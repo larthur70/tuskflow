@@ -57,23 +57,9 @@ Future<void> showNotificationPermissionBottomSheet(BuildContext context) {
                     ),
                   ),
                   child: const Text(
-                    'Permitir notificações',
+                    'Entendi',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-              ),
-              Space.vertical(12),
-              SizedBox(
-                width: double.infinity,
-                child: TextButton(
-                  onPressed: () => _onDismiss(sheetContext),
-                  child: const Text(
-                    'Agora não',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
                       fontSize: 16,
                     ),
                   ),
@@ -95,13 +81,5 @@ Future<void> _onAllowNotifications(BuildContext context) async {
   final String? uid = FirebaseAuth.instance.currentUser?.uid;
   if (uid != null) {
     unawaited(NotificationService.instance.uploadFcmToken(uid));
-  }
-}
-
-Future<void> _onDismiss(BuildContext context) async {
-  unawaited(context.read<AnalyticsService>().logNotificationDeclined());
-  await NotificationService.instance.markNotificationPromptHandled();
-  if (context.mounted) {
-    Navigator.of(context).pop();
   }
 }
