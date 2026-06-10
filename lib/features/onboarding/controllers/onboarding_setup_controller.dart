@@ -9,7 +9,6 @@ class OnboardingSetupController extends ChangeNotifier {
   bool _complete = false;
   bool _initialized = false;
   bool _isResolving = false;
-  String? _pendingStartFiveMinutesTaskId;
   bool _isExitingOnboarding = false;
 
   bool get isComplete => _complete;
@@ -67,18 +66,7 @@ class OnboardingSetupController extends ChangeNotifier {
     }
   }
 
-  Future<String?> consumePendingStartFiveMinutesTaskId() async {
-    final memoryId = _pendingStartFiveMinutesTaskId;
-    _pendingStartFiveMinutesTaskId = null;
-    final prefsId = await _service.takePendingStartFiveMinutesTaskId();
-    return memoryId ?? prefsId;
-  }
-
-  Future<void> markComplete({String? createdTaskId}) async {
-    if (createdTaskId != null) {
-      _pendingStartFiveMinutesTaskId = createdTaskId;
-      await _service.setPendingStartFiveMinutesTaskId(createdTaskId);
-    }
+  Future<void> markComplete() async {
     await _service.markSetupComplete();
     _complete = true;
     _initialized = true;
@@ -88,7 +76,6 @@ class OnboardingSetupController extends ChangeNotifier {
   Future<void> reset() async {
     await _service.clearSetupComplete();
     _complete = false;
-    _pendingStartFiveMinutesTaskId = null;
     _isExitingOnboarding = false;
     notifyListeners();
   }

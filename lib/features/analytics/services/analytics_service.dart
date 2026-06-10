@@ -35,15 +35,6 @@ class AnalyticsService {
   Future<void> logUserReturned() =>
       _safeLog(AnalyticsEvents.userReturned);
 
-  Future<void> logProgressScreenOpened() =>
-      _safeLog(AnalyticsEvents.progressScreenOpened);
-
-  Future<void> logStartFiveMinutesStartTapped() =>
-      _safeLog(AnalyticsEvents.startFiveMinutesStartTapped);
-
-  Future<void> logStartFiveMinutesCloseTapped() =>
-      _safeLog(AnalyticsEvents.startFiveMinutesCloseTapped);
-
   Future<void> _safeLog(String name, [Map<String, Object>? parameters]) async {
     try {
       await _analytics.logEvent(name: name, parameters: parameters);

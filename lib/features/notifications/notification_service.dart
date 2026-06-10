@@ -16,6 +16,8 @@ class NotificationService {
 
   static const String notificationPromptHandledKey =
       'notification_prompt_handled';
+  static const String _pendingSocialLoginNotificationPromptKey =
+      'pending_social_login_notification_prompt';
   static const String _installationIdKey = 'fcm_installation_id';
   static const String _lastFcmTokenKey = 'last_fcm_token';
   static const String _fcmTokensCollection = 'fcmTokens';
@@ -110,6 +112,47 @@ class NotificationService {
   Future<void> markNotificationPromptHandled() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(notificationPromptHandledKey, true);
+  }
+
+  /// Set when user reaches home via Google/Apple login from onboarding login.
+  Future<void> markPendingSocialLoginNotificationPrompt() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_pendingSocialLoginNotificationPromptKey, true);
+  }
+
+  /// Shows the OS notification dialog once after onboarding social login.
+  Future<void> requestSystemPermissionIfPendingFromOnboardingSocialLogin() async {
+    await requestSystemPermissionOnHomeIfNeeded();
+  }
+
+  /// OS prompt on home: social-login onboarding, or fresh install with restored auth.
+  Future<void> requestSystemPermissionOnHomeIfNeeded() async {
+    final prefs = await SharedPreferences.getInstance();
+    final bool pendingSocial =
+        prefs.getBool(_pendingSocialLoginNotificationPromptKey) ?? false;
+    if (pendingSocial) {
+      await prefs.remove(_pendingSocialLoginNotificationPromptKey);
+    }
+
+    final bool handled = prefs.getBool(notificationPromptHandledKey) ?? false;
+    if (handled && !pendingSocial) return;
+
+    if (await _isNotificationPermissionGranted()) {
+      await markNotificationPromptHandled();
+      await _uploadFcmIfSignedIn();
+      return;
+    }
+
+    await markNotificationPromptHandled();
+    await requestSystemNotificationPermission();
+    await _uploadFcmIfSignedIn();
+  }
+
+  Future<void> _uploadFcmIfSignedIn() async {
+    final String? uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null) {
+      unawaited(uploadFcmToken(uid));
+    }
   }
 
   Future<bool> areNotificationsEnabled() => _isNotificationPermissionGranted();

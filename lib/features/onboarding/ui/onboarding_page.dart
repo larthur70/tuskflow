@@ -10,9 +10,11 @@ import 'package:tuskflow/core/utils/critical_operation_timeout.dart';
 import 'package:tuskflow/features/onboarding/controllers/onboarding_controller.dart';
 import 'package:tuskflow/features/onboarding/controllers/onboarding_setup_controller.dart';
 import 'package:tuskflow/features/auth/ui/login_page.dart';
+import 'package:tuskflow/features/notifications/ui/notification_permission_content.dart';
 import 'package:tuskflow/features/onboarding/ui/tela1.dart';
-import 'package:tuskflow/features/onboarding/ui/tela1b.dart';
+import 'package:tuskflow/features/onboarding/ui/tela_notificacoes.dart';
 import 'package:tuskflow/features/onboarding/ui/tela2.dart';
+import 'package:tuskflow/features/sessions/services/first_timer_tips_service.dart';
 import 'package:tuskflow/utils/space.dart';
 
 class OnBoardingPage extends StatefulWidget {
@@ -61,15 +63,17 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
     overlay.show();
     setupController.beginOnboardingExit();
     try {
-      final createdTaskId = await onboardingController.initializeUser(
+      await onboardingController.initializeUser(
         completedOnboarding: allFlux,
         title: title,
         dueDate: dueDate,
       );
 
-      await setupController.markComplete(
-        createdTaskId: allFlux ? createdTaskId : null,
-      );
+      await setupController.markComplete();
+
+      if (allFlux) {
+        await FirstTimerTipsService().markPendingTipsSheetAfterLogin();
+      }
 
       final String? uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid != null) {
@@ -97,6 +101,110 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
   void _openLoginPage() {
     Navigator.of(context).push(
       MaterialPageRoute<void>(builder: (_) => const LoginPage()),
+    );
+  }
+
+  Future<void> _onNotificationContinue() async {
+    await acceptNotificationPermission(context);
+    if (!mounted) return;
+    _controller.nextPage(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  void _onNotificationBack() {
+    _controller.previousPage(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  void _onTaskPageBack() {
+    FocusScope.of(context).unfocus();
+    _controller.previousPage(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  Widget _buildBackButton(ColorScheme colorScheme, VoidCallback onPressed) {
+    return TextButton(
+      onPressed: onPressed,
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      child: Text(
+        'Voltar',
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: colorScheme.secondary,
+          fontSize: 16,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPage1Actions(ColorScheme colorScheme) {
+    final continueButton = FilledButton(
+      onPressed: _onNotificationContinue,
+      style: const ButtonStyle(
+        padding: WidgetStatePropertyAll(
+          EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+        ),
+      ),
+      child: const Text(
+        'Entendi',
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 18,
+        ),
+      ),
+    );
+
+    return Center(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildBackButton(colorScheme, _onNotificationBack),
+          const SizedBox(width: 8),
+          continueButton,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPage2Actions(ColorScheme colorScheme) {
+    final createButton = FilledButton(
+      onPressed: () {
+        final validate = formKey.currentState!.validate();
+        if (!validate) return;
+        exitOnboarding(true);
+      },
+      style: const ButtonStyle(
+        padding: WidgetStatePropertyAll(
+          EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+        ),
+      ),
+      child: const Text(
+        'Criar tarefa',
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 18,
+        ),
+      ),
+    );
+
+    return Center(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildBackButton(colorScheme, _onTaskPageBack),
+          const SizedBox(width: 8),
+          createButton,
+        ],
+      ),
     );
   }
 
@@ -178,42 +286,6 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
     );
   }
 
-  Widget _buildContinueButton() {
-    final compactHeight = MediaQuery.sizeOf(context).height < 700;
-
-    return SizedBox(
-      width: double.infinity,
-      child: FilledButton(
-        onPressed: () {
-          _controller.nextPage(
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeInOut,
-          );
-        },
-        style: const ButtonStyle(
-          padding: WidgetStatePropertyAll(
-            EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Continuar',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: compactHeight ? 16 : 18,
-              ),
-            ),
-            Space.horizontal(4),
-            const Icon(Icons.keyboard_arrow_right, size: 24),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final colorScheme = ColorScheme.of(context);
@@ -221,13 +293,13 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        title: Text("TuskFlow",style: TextStyle(color: colorScheme.secondary,fontWeight: FontWeight.bold),),
-        actions: [
-          IconButton(onPressed: ()async{
-            await exitOnboarding(false);
-           
-          }, icon: Icon(Icons.close,color: colorScheme.secondary,))
-        ],
+        title: Text(
+          'TuskFlow',
+          style: TextStyle(
+            color: colorScheme.secondary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
       body: SafeArea(
         child: Padding(
@@ -240,6 +312,7 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
             children: [
               Expanded(
                 child: PageView(
+                  physics: const NeverScrollableScrollPhysics(),
                   onPageChanged: (index) {
                     setState(() {
                       currentPage = index;
@@ -248,7 +321,7 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                   controller: _controller,
                   children: [
                     const Tela1(),
-                    const Tela1b(),
+                    const TelaNotificacoes(),
                     Tela2(
                       formKey: formKey,
                       dateController: dateController,
@@ -262,41 +335,17 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
               ),
               if (currentPage == 0)
                 _buildPage0Actions(colorScheme)
-              else if (currentPage == 1) ...[
-                Space.vertical(32),
-                _buildContinueButton(),
-              ]
+              else if (currentPage == 1)
+                _buildPage1Actions(colorScheme)
               else
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: () {
-                      final validate = formKey.currentState!.validate();
-                      if (!validate) return;
-                      exitOnboarding(true);
-                    },
-                    style: const ButtonStyle(
-                      padding: WidgetStatePropertyAll(
-                        EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      ),
-                    ),
-                    child: const Text(
-                      'Criar tarefa',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
-                    ),
-                  ),
-                ),
+                _buildPage2Actions(colorScheme),
               if (!keyboardOpen) ...[
-                Space.vertical(12),
+                Space.vertical(8),
                 SmoothPageIndicator(
                   controller: _controller,
                   count: 3,
                   effect: ExpandingDotsEffect(),
                 ),
-                const SizedBox(height: 8),
               ],
             ],
           ),

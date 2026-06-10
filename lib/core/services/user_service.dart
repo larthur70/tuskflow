@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:tuskflow/core/models/user_model.dart';
-import 'package:tuskflow/features/tasks/models/task_model.dart';
 
 class UserService {
   final _firestore = FirebaseFirestore.instance;
@@ -13,25 +12,6 @@ class UserService {
   void invalidateUserCache() {
     _cachedUser = null;
     _cachedForUid = null;
-  }
-
-  Future<void> incrementProcrastinationDefeated(TaskModel task,WriteBatch batch)async {
-    if(user == null) return;
-
-    if (task.isEarlyStartAt()) {
-      final userDoc = _firestore.collection('users').doc(user!.uid);
-      batch.update(userDoc, {
-        'earlyStartsCount': FieldValue.increment(1),
-      });
-      if (_cachedForUid == user!.uid && _cachedUser != null) {
-        _cachedUser = UserModel(
-          earlyStartsCount: _cachedUser!.earlyStartsCount + 1,
-          interestedInPro: _cachedUser!.interestedInPro,
-          email: _cachedUser!.email,
-          displayName: _cachedUser!.displayName,
-        );
-      }
-    }
   }
 
   Future<UserModel?> getUserData({bool forceRefresh = false}) async {
@@ -57,21 +37,6 @@ class UserService {
     _cachedUser = UserModel.fromMap(data);
     _cachedForUid = user!.uid;
     return _cachedUser;
-  }
-
-  Future<void> registerInterestInPro() async {
-    if (user == null) return;
-    await _firestore.collection('users').doc(user!.uid).update({
-      'interestedInPro': true,
-      'interestedInProAt': FieldValue.serverTimestamp(),
-    });
-    _cachedUser = UserModel(
-      earlyStartsCount: _cachedUser?.earlyStartsCount ?? 0,
-      interestedInPro: true,
-      email: _cachedUser?.email,
-      displayName: _cachedUser?.displayName,
-    );
-    _cachedForUid = user!.uid;
   }
 
   /// Saves profile fields from social login (Apple only sends name/email once).

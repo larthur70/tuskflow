@@ -23,6 +23,27 @@ class Tela2 extends StatefulWidget {
 class _Tela2State extends State<Tela2> {
   final ScrollController _scrollController = ScrollController();
 
+  static const String _defaultTitle = 'Trabalho de anatomia';
+
+  @override
+  void initState() {
+    super.initState();
+    _applyDefaultTaskIfEmpty();
+  }
+
+  void _applyDefaultTaskIfEmpty() {
+    if (widget.titleController.text.isEmpty) {
+      widget.titleController.text = _defaultTitle;
+    }
+    if (widget.dateController.text.isEmpty) {
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      widget.dateController.text =
+          '${today.day} / ${today.month} / ${today.year}';
+      widget.onDateSelected(today);
+    }
+  }
+
   @override
   void dispose() {
     _scrollController.dispose();
@@ -42,7 +63,6 @@ class _Tela2State extends State<Tela2> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = ColorScheme.of(context);
     final compact = MediaQuery.sizeOf(context).height < 700;
     final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
     final titleSize = compact ? 22.0 : 26.0;
@@ -54,23 +74,8 @@ class _Tela2State extends State<Tela2> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (!keyboardOpen) ...[
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                color: const Color(0xff9ed9ff),
-              ),
-              child: Icon(
-                Icons.add_task,
-                color: colorScheme.secondary,
-                size: compact ? 32 : 40,
-              ),
-            ),
-            Space.vertical(compact ? 12 : 16),
-          ],
           Text(
-            "Qual trabalho,prova ou tarefa está te preocupando?",
+            'Vamos tirar uma preocupação da sua cabeça.',
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: keyboardOpen ? 20 : titleSize,
@@ -79,7 +84,7 @@ class _Tela2State extends State<Tela2> {
           if (!keyboardOpen) ...[
             Space.vertical(compact ? 12 : 16),
             Text(
-              'Crie sua primeira tarefa e começe por 5 minutos para vencer a procrastinação',
+              'Cadastre uma tarefa da faculdade e eu vou te lembrar antes que ela vire um problema.',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,

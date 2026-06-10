@@ -87,10 +87,4 @@ class TaskModel {
     if(difference <= 7) return Colors.amber;
     return Colors.green;
   }
-
-  /// True when [at] is more than 24 hours before [dueDate] (early start window).
-  bool isEarlyStartAt([DateTime? at]) {
-    final DateTime reference = at ?? DateTime.now();
-    return dueDate.difference(reference).inHours > 24;
-  }
 }

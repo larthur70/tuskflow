@@ -18,7 +18,7 @@ class Tela3 extends StatelessWidget {
           ),),
           Space.vertical(12),
           Text(
-            "5 minutos é o que você precisa para vencer a procrastinação",
+            'Organizar seus prazos não precisa ser complicado. Deslize os cartões para gerenciar suas tarefas em segundos.',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,

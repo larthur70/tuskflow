@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:tuskflow/features/tasks/controllers/task_controller.dart';
 import 'package:tuskflow/features/tasks/models/task_model.dart';
 import 'package:tuskflow/features/tasks/ui/widgets/task_card.dart';
+import 'package:tuskflow/core/utils/system_ui_config.dart';
 import 'package:tuskflow/features/tasks/ui/widgets/tusk_mascot_avatar.dart';
 import 'package:tuskflow/utils/space.dart';
 
@@ -166,7 +167,7 @@ class _TaskListState extends State<TaskList> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 80),
+              const SizedBox(height: kHomeFabScrollPadding),
             ],
           ),
         );
@@ -206,6 +207,7 @@ class _TaskListState extends State<TaskList> {
         Space.vertical(24),
         Expanded(
           child: ListView.separated(
+            padding: const EdgeInsets.only(bottom: kHomeFabScrollPadding),
             separatorBuilder: (context, index) {
               return Space.vertical(16);
             },

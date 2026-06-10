@@ -48,7 +48,7 @@ class Tela1 extends StatelessWidget {
             ),
             Space.vertical(sectionGap),
             Text(
-              'Pare de se preocupar com as coisas da faculdade!',
+              'Nunca mais seja pego de surpresa por trabalhos e provas.',
               style: TextStyle(
                 fontSize: titleSize,
                 fontWeight: FontWeight.bold,
@@ -57,21 +57,11 @@ class Tela1 extends StatelessWidget {
             ),
             Space.vertical(compact ? 16 : 24),
             Text(
-              'Trabalhos, provas e tarefas causam ansiedade muito antes do prazo chegar.',
+              'O Tusk acompanha seus prazos e te avisa antes que eles virem um problema. 🐘',
               style: TextStyle(
                 fontSize: bodySize,
                 fontWeight: FontWeight.bold,
                 color: Colors.grey.shade700,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            Space.vertical(compact ? 16 : 24),
-            Text(
-              'Eu sou o Tusk, e vou ajudar você a manter tudo sob controle🐘',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.grey.shade600,
-                fontSize: 14,
               ),
               textAlign: TextAlign.center,
             ),

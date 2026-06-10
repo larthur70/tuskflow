@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:tuskflow/app.dart';
+import 'package:tuskflow/core/utils/system_ui_config.dart';
 import 'package:tuskflow/features/analytics/services/analytics_service.dart';
 import 'package:tuskflow/features/notifications/notification_service.dart';
 import 'package:tuskflow/firebase_options.dart';
@@ -18,6 +19,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await configureSystemUi();
 
   if (Firebase.apps.isEmpty) {
     await Firebase.initializeApp(

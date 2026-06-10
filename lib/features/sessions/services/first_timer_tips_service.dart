@@ -10,7 +10,8 @@ class FirstTimerTipsService {
     return prefs.getBool(_pendingSheetKey) ?? false;
   }
 
-  Future<void> markFirstTimerCompletedIfNeeded() async {
+  /// Schedules the tips sheet for the next home visit after onboarding/login.
+  Future<void> markPendingTipsSheetAfterLogin() async {
     final prefs = await SharedPreferences.getInstance();
     if (prefs.getBool(_sheetShownKey) ?? false) return;
     await prefs.setBool(_pendingSheetKey, true);

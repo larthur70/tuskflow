@@ -30,9 +30,6 @@ service cloud.firestore {
         'lastNotificationSentAt',
         'lastTimerAt',
         'habitHour',
-        'earlyStartsCount',
-        'interestedInPro',
-        'interestedInProAt',
         'email',
         'displayName',
         'fcmToken',
@@ -45,9 +42,6 @@ service cloud.firestore {
         && (!('lastNotificationSentAt' in data) || data.lastNotificationSentAt is timestamp)
         && (!('lastTimerAt' in data) || data.lastTimerAt is timestamp)
         && (!('habitHour' in data) || (data.habitHour is int && data.habitHour >= 0 && data.habitHour <= 23))
-        && (!('earlyStartsCount' in data) || (data.earlyStartsCount is int && data.earlyStartsCount >= 0))
-        && (!('interestedInPro' in data) || data.interestedInPro is bool)
-        && (!('interestedInProAt' in data) || data.interestedInProAt is timestamp)
         && (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 100))
         && (!('email' in data)
           || (data.email is string
@@ -61,21 +55,6 @@ service cloud.firestore {
           || request.resource.data.createdAt == resource.data.createdAt)
           && (!('lastNotificationSentAt' in resource.data)
           || request.resource.data.lastNotificationSentAt == resource.data.lastNotificationSentAt)
-    }
-
-    function earlyStartsCountOk() {
-      let before = ('earlyStartsCount' in resource.data)
-        ? resource.data.earlyStartsCount
-        : 0;
-      return !('earlyStartsCount' in request.resource.data)
-        || request.resource.data.earlyStartsCount == before
-        || request.resource.data.earlyStartsCount == before + 1;
-    }
-
-    function interestedInProNotRevoked() {
-      return !('interestedInPro' in resource.data)
-        || resource.data.interestedInPro != true
-        || request.resource.data.interestedInPro == true;
     }
 
     function isOnboardingUserCreate() {
@@ -99,9 +78,7 @@ service cloud.firestore {
     function isValidUserUpdate(userId) {
       return isOwner(userId)
         && userFieldTypesOk(request.resource.data)
-        && userImmutableFieldsPreserved()
-        && earlyStartsCountOk()
-        && interestedInProNotRevoked();
+        && userImmutableFieldsPreserved();
     }
 
     // --- Task ---

@@ -6,7 +6,6 @@ import 'package:tuskflow/core/widgets/text_card.dart';
 import 'package:tuskflow/features/analytics/services/analytics_service.dart';
 import 'package:tuskflow/features/tasks/models/task_model.dart';
 import 'package:tuskflow/features/tasks/services/firestore_task_service.dart';
-import 'package:tuskflow/features/tasks/ui/start_five_minutes_page.dart';
 import 'package:tuskflow/features/tasks/ui/widgets/manual_creation.dart';
 import 'package:tuskflow/features/tasks/ui/widgets/my_button.dart';
 import 'package:tuskflow/utils/space.dart';
@@ -81,10 +80,11 @@ class _CreateTaskState extends State<CreateTask> {
           icon: Icon(Icons.close),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
             child: Column(
               
               children: [
@@ -116,14 +116,10 @@ class _CreateTaskState extends State<CreateTask> {
                   final overlay = context.loaderOverlay;
                   overlay.show();
                   try {
-                    final task = await _createTask();
+                    await _createTask();
                     overlay.hide();
-                    if (!context.mounted || task == null) return;
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute<void>(
-                        builder: (_) => StartFiveMinutesPage(task: task),
-                      ),
-                    );
+                    if (!context.mounted) return;
+                    Navigator.of(context).pop();
                   } catch (err) {
                     overlay.hide();
                   }
@@ -134,6 +130,7 @@ class _CreateTaskState extends State<CreateTask> {
               ],
             ),
           ),
+        ),
         ),
       ),
     );

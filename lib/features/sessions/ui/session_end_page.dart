@@ -1,5 +1,6 @@
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
+import 'package:tuskflow/core/utils/system_ui_config.dart';
 import 'package:tuskflow/features/sessions/ui/widgets/congrats_card.dart';
 import 'package:tuskflow/features/sessions/ui/widgets/looping_asset_video.dart';
 import 'package:tuskflow/utils/space.dart';
@@ -29,16 +30,10 @@ class _SessionEndPageState extends State<SessionEndPage> {
 
   String _formatMinutes(int seconds) {
     final int minutes = seconds ~/ 60;
-    return minutes == 1 ? "1 minuto" : "$minutes minutos";
+    return minutes == 1 ? '1 minuto' : '$minutes minutos';
   }
 
-  Widget _buildContent({
-    required String headline,
-    required String? subtitle,
-    required bool isEarlyStart,
-    required int duration,
-    required int earlyStartsCount,
-  }) {
+  Widget _buildContent({required int duration}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -57,63 +52,25 @@ class _SessionEndPageState extends State<SessionEndPage> {
           ),
         ),
         Space.vertical(24),
-        Text(
-          headline,
+        const Text(
+          'O mais difícil você já fez, começou! Parabéns',
           textAlign: TextAlign.center,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 26),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 26),
         ),
-        if (subtitle != null) ...[
-          Space.vertical(12),
-          Text(
-            subtitle,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 16),
-          ),
-        ],
         Space.vertical(24),
-        if (isEarlyStart)
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CongratsCard(
-                icon: Icon(Icons.lock_clock, size: 30, color: Colors.blue),
-                title: "DURAÇÃO",
-                subtitle: _formatMinutes(duration),
-                border: const Border(
-                  left: BorderSide(width: 4, color: Colors.blue),
-                ),
+        Row(
+          children: [
+            CongratsCard(
+              icon: Icon(Icons.lock_clock, size: 30, color: Colors.blue),
+              title: 'DURAÇÃO',
+              subtitle: _formatMinutes(duration),
+              border: const Border(
+                left: BorderSide(width: 4, color: Colors.blue),
+                right: BorderSide(width: 4, color: Colors.blue),
               ),
-              Space.horizontal(12),
-              CongratsCard(
-                icon: Icon(
-                  Icons.local_fire_department,
-                  size: 30,
-                  color: Colors.orange,
-                ),
-                title: "COMEÇOS\nANTECIPADOS",
-                titleFontSize: 11,
-                subtitle: "$earlyStartsCount",
-                subtitleFontSize: 22,
-                border: const Border(
-                  right: BorderSide(color: Colors.orange, width: 4),
-                ),
-              ),
-            ],
-          )
-        else
-          Row(
-            children: [
-              CongratsCard(
-                icon: Icon(Icons.lock_clock, size: 30, color: Colors.blue),
-                title: "DURAÇÃO",
-                subtitle: _formatMinutes(duration),
-                border: const Border(
-                  left: BorderSide(width: 4, color: Colors.blue),
-                  right: BorderSide(width: 4, color: Colors.blue),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
+        ),
         Space.vertical(32),
         SizedBox(
           height: 50,
@@ -123,7 +80,7 @@ class _SessionEndPageState extends State<SessionEndPage> {
               Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
             },
             child: const Text(
-              "Voltar para tarefas",
+              'Voltar para tarefas',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
@@ -149,22 +106,12 @@ class _SessionEndPageState extends State<SessionEndPage> {
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
 
     final int duration = args?['duration'] as int? ?? 0;
-    final bool isEarlyStart = args?['isEarlyStart'] as bool? ?? false;
-    final int earlyStartsCount = args?['earlyStartsCount'] as int? ?? 0;
-
-    final String headline = isEarlyStart
-        ? "Parabéns, você agiu antes da hora final, está evoluindo!"
-        : "O mais difícil você já fez, começou! Parabéns";
-
-    final String? subtitle = isEarlyStart
-        ? "Cada começo antecipado fortalece seu hábito de agir com antecedência."
-        : null;
-
     final colorScheme = ColorScheme.of(context);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "Sessão Concluída",
+          'Sessão Concluída',
           style: TextStyle(color: colorScheme.primary),
         ),
         automaticallyImplyLeading: false,
@@ -177,30 +124,17 @@ class _SessionEndPageState extends State<SessionEndPage> {
       ),
       body: Stack(
         children: [
-          if (isEarlyStart)
-            SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: _buildContent(
-                headline: headline,
-                subtitle: subtitle,
-                isEarlyStart: isEarlyStart,
-                duration: duration,
-                earlyStartsCount: earlyStartsCount,
+          Center(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(
+                16,
+                16,
+                16,
+                16 + bottomViewInset(context),
               ),
-            )
-          else
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: _buildContent(
-                  headline: headline,
-                  subtitle: subtitle,
-                  isEarlyStart: isEarlyStart,
-                  duration: duration,
-                  earlyStartsCount: earlyStartsCount,
-                ),
-              ),
+              child: _buildContent(duration: duration),
             ),
+          ),
           ConfettiWidget(
             confettiController: _confettiController,
             blastDirectionality: BlastDirectionality.explosive,

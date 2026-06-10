@@ -15,7 +15,12 @@ import 'package:tuskflow/utils/space.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({super.key});
+  const ProfilePage({
+    super.key,
+    this.embeddedInHome = false,
+  });
+
+  final bool embeddedInHome;
 
   static final Uri _suggestionFormUri = Uri.parse(
     'https://docs.google.com/forms/d/e/1FAIpQLSe-ETmM9FxWk_c_X2UZ9KVC_wzapCvkc-R3OiPlooxem0mr_A/viewform?usp=publish-editor',
@@ -85,11 +90,9 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildBody(ColorScheme colorScheme) {
     final authService = context.read<AuthService>();
     final User? user = authService.auth.currentUser;
-    final colorScheme = ColorScheme.of(context);
 
     final String? authDisplayName = user?.displayName?.trim();
     final String? firestoreDisplayName = _firestoreUser?.displayName?.trim();
@@ -114,131 +117,141 @@ class _ProfilePageState extends State<ProfilePage> {
 
     final bool showSocialLoginButtons = !userHasGoogleOrAppleLinked(user);
 
+    return Padding(
+      padding: const EdgeInsets.all(22),
+      child: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  Space.vertical(16),
+                  Text(
+                    'Olá, $displayName',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    linkedEmailLine,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: 16,
+                    ),
+                  ),
+                  if (showSocialLoginButtons) ...[
+                    Space.vertical(32),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Faça login para proteger seus dados',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.primary,
+                            ),
+                          ),
+                          Space.vertical(8),
+                          Text(
+                            'Faça login para não perder seus dados em caso de desinstalação e troca de dispositivo.',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade700,
+                              height: 1.4,
+                            ),
+                          ),
+                          Space.vertical(16),
+                          SocialSignInButtons(
+                            completeOnboardingSetup: false,
+                            googleLabel: 'Logar com Google',
+                            appleLabel: 'Logar com a apple',
+                            googleSuccessSnackBar:
+                                'Conta Google conectada com sucesso!',
+                            appleSuccessSnackBar:
+                                'Conta Apple conectada com sucesso!',
+                            onSuccess: _onSocialSignInSuccess,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Space.vertical(24),
+                  ] else
+                    Space.vertical(8),
+                  const NotificationDisabledBanner(
+                    placement: NotificationBannerPlacement.profile,
+                  ),
+                  Space.vertical(22),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: () => _openSuggestionForm(context),
+                      child: const Text(
+                        'Envie uma sugestão para melhorar o app',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (kDebugMode)
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: _logoutLoading ? null : () => _onLogoutTap(context),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: colorScheme.error,
+                  side: BorderSide(color: colorScheme.error),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                child: Text(
+                  _logoutLoading ? 'Saindo…' : 'Sair (teste)',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = ColorScheme.of(context);
+
+    if (widget.embeddedInHome) {
+      return SafeArea(child: _buildBody(colorScheme));
+    }
+
     return Scaffold(
       appBar: AppBar(
-        actionsPadding: EdgeInsets.only(right: 16),
         centerTitle: false,
-        title: Text(
-          "Perfil",
+        title: const Text(
+          'Perfil',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 28),
         ),
         backgroundColor: Colors.white,
         foregroundColor: colorScheme.primary,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(22),
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    Space.vertical(16),
-                    Text(
-                      'Olá, $displayName',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 30,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      linkedEmailLine,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontSize: 16,
-                      ),
-                    ),
-                    if (showSocialLoginButtons) ...[
-                      Space.vertical(32),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Faça login para proteger seus dados',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: colorScheme.primary,
-                              ),
-                            ),
-                            Space.vertical(8),
-                            Text(
-                              'Faça login para não perder seus dados em caso de desinstalação e troca de dispositivo.',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey.shade700,
-                                height: 1.4,
-                              ),
-                            ),
-                            Space.vertical(16),
-                            SocialSignInButtons(
-                              completeOnboardingSetup: false,
-                              googleLabel: 'Logar com Google',
-                              appleLabel: 'Logar com a apple',
-                              googleSuccessSnackBar:
-                                  'Conta Google conectada com sucesso!',
-                              appleSuccessSnackBar:
-                                  'Conta Apple conectada com sucesso!',
-                              onSuccess: _onSocialSignInSuccess,
-                            ),
-                          ],
-                        ),
-                      ),
-                      Space.vertical(24),
-                    ] else
-                      Space.vertical(8),
-                    const NotificationDisabledBanner(
-                      placement: NotificationBannerPlacement.profile,
-                    ),
-                    Space.vertical(22),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        onPressed: () => _openSuggestionForm(context),
-                        child: const Text(
-                          'Envie uma sugestão para melhorar o app',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            if (kDebugMode)
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: _logoutLoading ? null : () => _onLogoutTap(context),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: colorScheme.error,
-                    side: BorderSide(color: colorScheme.error),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  child: Text(
-                    _logoutLoading ? 'Saindo…' : 'Sair (teste)',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
+      body: SafeArea(child: _buildBody(colorScheme)),
     );
   }
 }

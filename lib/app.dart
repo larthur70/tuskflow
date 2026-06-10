@@ -19,7 +19,6 @@ import 'package:tuskflow/features/tasks/models/task_model.dart';
 import 'package:tuskflow/features/tasks/services/firestore_task_service.dart';
 import 'package:tuskflow/features/tasks/ui/create_task_page.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:tuskflow/features/tasks/ui/profile_page.dart';
 import 'package:tuskflow/features/sessions/ui/timer_page.dart';
 import 'package:tuskflow/features/sessions/ui/timer_route_args.dart';
 
@@ -119,10 +118,8 @@ class App extends StatelessWidget {
             },
             routes: {
               "/": (context) => AuthWrapper(),
-              "/create_task":(context) => CreateTask(),
-              "/profile_page":(context) => ProfilePage(),
-              
-              "/succes_page":(context)=> SessionEndPage()
+              "/create_task": (context) => CreateTask(),
+              "/succes_page": (context) => SessionEndPage(),
               },
             ),
           ),

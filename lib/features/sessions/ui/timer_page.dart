@@ -4,10 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:tuskflow/core/utils/critical_operation_timeout.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:provider/provider.dart';
-import 'package:tuskflow/core/services/user_service.dart';
 import 'package:tuskflow/features/sessions/controller/timer_controller.dart';
 import 'package:tuskflow/features/sessions/services/firestore_session_service.dart';
-import 'package:tuskflow/features/sessions/services/first_timer_tips_service.dart';
 import 'package:tuskflow/features/sessions/services/timer_persistence_service.dart';
 import 'package:tuskflow/features/sessions/ui/widgets/control_timer_button.dart';
 import 'package:tuskflow/features/tasks/models/task_model.dart';
@@ -86,19 +84,6 @@ class _TimerPageState extends State<TimerPage> with WidgetsBindingObserver {
   }) async {
     if (!mounted) return;
 
-    context.read<UserService>().invalidateUserCache();
-
-    final bool isEarlyStart = widget.task.isEarlyStartAt();
-    int earlyStartsCount = 0;
-    if (isEarlyStart) {
-      final userData = await context.read<UserService>().getUserData(
-        forceRefresh: syncedOnline,
-      );
-      earlyStartsCount = userData?.earlyStartsCount ?? 0;
-    }
-
-    if (!mounted) return;
-
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.maybeOf(context);
 
@@ -106,8 +91,6 @@ class _TimerPageState extends State<TimerPage> with WidgetsBindingObserver {
       '/succes_page',
       arguments: {
         'duration': durationSeconds,
-        'isEarlyStart': isEarlyStart,
-        'earlyStartsCount': earlyStartsCount,
       },
     );
 
@@ -141,10 +124,6 @@ class _TimerPageState extends State<TimerPage> with WidgetsBindingObserver {
         continuedBeyond5min: finalRealTempo > 300,
         batch: batch,
       );
-      await context.read<UserService>().incrementProcrastinationDefeated(
-        widget.task,
-        batch,
-      );
 
       try {
         await withCriticalOperationTimeout(batch.commit());
@@ -158,7 +137,6 @@ class _TimerPageState extends State<TimerPage> with WidgetsBindingObserver {
         }
       }
 
-      await FirstTimerTipsService().markFirstTimerCompletedIfNeeded();
       loader.hide();
       await _navigateToSessionSuccess(
         durationSeconds: finalRealTempo,
@@ -184,12 +162,16 @@ class _TimerPageState extends State<TimerPage> with WidgetsBindingObserver {
         : (1 - (timerController.actualSeconds / 300)).clamp(0.0, 1.0);
     final colorScheme = ColorScheme.of(context);
     return Scaffold(
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
               if (timerController.isCrescentTimer)
                 Text(
                   "Parabéns, o mais difícil já passou, agora é só aproveitar o embalo🔥",
@@ -328,8 +310,11 @@ class _TimerPageState extends State<TimerPage> with WidgetsBindingObserver {
                   ],
                 ),
               ),
-            ],
-          ),
+                  ],
+                ),
+              ),
+            );
+          },
         ),
       ),
     );

@@ -83,8 +83,9 @@ class _OnboardingPreparingScreenState extends State<_OnboardingPreparingScreen> 
     final colorScheme = ColorScheme.of(context);
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Center(
-        child: Column(
+      body: SafeArea(
+        child: Center(
+          child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             CircularProgressIndicator(color: colorScheme.primary),
@@ -98,6 +99,7 @@ class _OnboardingPreparingScreenState extends State<_OnboardingPreparingScreen> 
               ),
             ),
           ],
+          ),
         ),
       ),
     );

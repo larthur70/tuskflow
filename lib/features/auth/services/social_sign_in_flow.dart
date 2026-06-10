@@ -9,6 +9,7 @@ import 'package:tuskflow/core/utils/critical_operation_timeout.dart';
 import 'package:tuskflow/features/notifications/notification_service.dart';
 import 'package:tuskflow/features/onboarding/controllers/onboarding_setup_controller.dart';
 import 'package:tuskflow/features/onboarding/services/onboarding_setup_service.dart';
+import 'package:tuskflow/features/sessions/services/first_timer_tips_service.dart';
 
 bool userHasGoogleOrAppleLinked(User? user) {
   if (user == null) return false;
@@ -30,10 +31,8 @@ Future<void> completeOnboardingSetupAfterSocialLogin(
   }
   await setupController.markComplete();
 
-  final String? uid = FirebaseAuth.instance.currentUser?.uid;
-  if (uid != null) {
-    unawaited(NotificationService.instance.uploadFcmToken(uid));
-  }
+  await NotificationService.instance.markPendingSocialLoginNotificationPrompt();
+  await FirstTimerTipsService().markPendingTipsSheetAfterLogin();
 }
 
 /// Returns `true` when sign-in linked or recovered an account (not canceled).
