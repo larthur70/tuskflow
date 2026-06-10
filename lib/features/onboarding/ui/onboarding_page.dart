@@ -69,11 +69,11 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
         dueDate: dueDate,
       );
 
-      await setupController.markComplete();
-
       if (allFlux) {
         await FirstTimerTipsService().markPendingTipsSheetAfterLogin();
       }
+
+      await setupController.markComplete();
 
       final String? uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid != null) {

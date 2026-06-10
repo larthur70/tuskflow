@@ -111,7 +111,7 @@ class _TaskListState extends State<TaskList> {
           ),
           Space.vertical(32),
           Text(
-            'Sem tarefas pendentes! Agora é só curtur',
+            'Sem tarefas pendentes! Agora é só curtir',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 18,
@@ -136,7 +136,7 @@ class _TaskListState extends State<TaskList> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                "Sua tarefa está pronta para ser começada!",
+                'Você tem uma tarefa pendente.',
                 style: TextStyle(
                   fontSize: headlineSize,
                   fontWeight: FontWeight.bold,
@@ -145,7 +145,7 @@ class _TaskListState extends State<TaskList> {
               ),
               Space.vertical(compact ? 8 : 12),
               Text(
-                "Inicie por 5 minutos e vença a procrastinação!",
+                'Acompanhe seus prazos e evite surpresas de última hora.',
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.grey.shade700,
@@ -157,15 +157,6 @@ class _TaskListState extends State<TaskList> {
                 task: task,
                 unique: true,
                 onTaskCompleted: _onTaskCompleted,
-              ),
-              Space.vertical(compact ? 16 : 24),
-              Text(
-                '"O segredo é apenas começar. Pequenos passos geram grandes conquistas"',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey.shade700,
-                ),
-                textAlign: TextAlign.center,
               ),
               const SizedBox(height: kHomeFabScrollPadding),
             ],
@@ -179,28 +170,32 @@ class _TaskListState extends State<TaskList> {
     return Column(
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Olá, Estudante!",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: Colors.grey.shade800,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Olá, Estudante!',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.grey.shade800,
+                    ),
                   ),
-                ),
-                Text(
-                  "O que temos\npara hoje?",
-                  style: TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.w900,
+                  Text(
+                    'Seus prazos estão sob controle.',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w900,
+                      height: 1.2,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
+            const SizedBox(width: 12),
             TuskMascotAvatar(key: _mascotKey),
           ],
         ),

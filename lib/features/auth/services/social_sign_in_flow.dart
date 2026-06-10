@@ -29,10 +29,9 @@ Future<void> completeOnboardingSetupAfterSocialLogin(
   if (!ensured) {
     await withOnboardingOperationTimeout(setupService.markSetupComplete());
   }
-  await setupController.markComplete();
-
   await NotificationService.instance.markPendingSocialLoginNotificationPrompt();
   await FirstTimerTipsService().markPendingTipsSheetAfterLogin();
+  await setupController.markComplete();
 }
 
 /// Returns `true` when sign-in linked or recovered an account (not canceled).
