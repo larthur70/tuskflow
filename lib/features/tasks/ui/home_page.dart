@@ -66,9 +66,16 @@ class _HomePageState extends State<HomePage> {
   void _maybeShowPostLoginPrompts() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
+
+      final tipsService = FirstTimerTipsService();
+      if (tipsService.hasHandledPostLoginPrompt) return;
+
       await NotificationService.instance.requestSystemPermissionOnHomeIfNeeded();
       if (!mounted) return;
-      final shouldShow = await FirstTimerTipsService().shouldShowTipsSheet();
+
+      tipsService.markPostLoginPromptHandled();
+
+      final shouldShow = await tipsService.shouldShowTipsSheet();
       if (!mounted || !shouldShow) return;
       await showFirstTimerTipsBottomSheet(context);
     });
