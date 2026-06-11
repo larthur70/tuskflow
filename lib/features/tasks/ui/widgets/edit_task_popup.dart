@@ -50,7 +50,23 @@ class _EditTaskPopupState extends State<EditTaskPopup> {
   }
 
   Future<void> getDate()async{
-    DateTime? colhida = await Picktime.pickDate(context: context,selectedDate: selectedDate);
+    final today = DateTime(
+      DateTime.now().year,
+      DateTime.now().month,
+      DateTime.now().day,
+    );
+    final due = DateTime(
+      selectedDate!.year,
+      selectedDate!.month,
+      selectedDate!.day,
+    );
+    final firstDate = due.isBefore(today) ? due : today;
+
+    DateTime? colhida = await Picktime.pickDate(
+      context: context,
+      selectedDate: selectedDate,
+      firstDate: firstDate,
+    );
     if(colhida != null){
       setState(() {
         selectedDate = colhida;
